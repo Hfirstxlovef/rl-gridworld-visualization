@@ -10,10 +10,12 @@ import {
   ClockCircleOutlined,
   AimOutlined,
   CheckCircleOutlined,
-  TableOutlined
+  TableOutlined,
+  BookOutlined
 } from '@ant-design/icons';
 import { useExperimentStore } from '../../store';
 import { ConvergenceChart, LearningCurve } from '../Charts';
+import { TeachingMode } from '../Teaching';
 
 const RightPanel: React.FC = () => {
   const {
@@ -116,6 +118,19 @@ const RightPanel: React.FC = () => {
             <Empty description="运行算法后显示" image={Empty.PRESENTED_IMAGE_SIMPLE} />
           )}
         </Card>
+      )
+    },
+    {
+      key: 'teaching',
+      label: (
+        <span>
+          <BookOutlined /> 教学模式
+        </span>
+      ),
+      children: (
+        <TeachingMode
+          algorithm={algorithmConfig.algorithm as 'policy_iteration' | 'value_iteration' | 'sarsa' | 'q_learning'}
+        />
       )
     }
   ];
