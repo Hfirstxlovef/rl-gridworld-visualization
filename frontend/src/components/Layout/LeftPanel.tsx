@@ -1,178 +1,293 @@
+/**
+ * LeftPanel - 左侧控制面板
+ *
+ * 包含算法配置、训练控制等功能
+ */
+
 import React, { useState } from 'react';
-import { Card, Select, InputNumber, Button, Space, Divider, Slider, Form } from 'antd';
-import { PlayCircleOutlined, PauseCircleOutlined, ReloadOutlined, StepForwardOutlined } from '@ant-design/icons';
+import {
+  Card,
+  Select,
+  InputNumber,
+  Button,
+  Space,
+  Divider,
+  Slider,
+  Form,
+  Switch,
+  Tooltip,
+  Badge
+} from 'antd';
+import {
+  PlayCircleOutlined,
+  ReloadOutlined,
+  SettingOutlined,
+  ExperimentOutlined
+} from '@ant-design/icons';
+import { useExperimentStore } from '../../store';
+import { useExperiment } from '../../hooks';
+import { EnvironmentConfig, AlgorithmConfig } from '../../types';
 
 const { Option } = Select;
 
-interface TrainingConfig {
-  algorithm: string;
-  mazeSize: number;
-  learningRate: number;
-  discountFactor: number;
-  epsilon: number;
-  episodes: number;
-}
-
 const LeftPanel: React.FC = () => {
-  const [config, setConfig] = useState<TrainingConfig>({
-    algorithm: 'q-learning',
-    mazeSize: 10,
-    learningRate: 0.1,
-    discountFactor: 0.95,
-    epsilon: 0.1,
-    episodes: 1000,
+  const {
+    envId,
+    isRunning,
+    visualization,
+    setVisualization,
+    setGridSize: updateGridSize
+  } = useExperimentStore();
+
+  const {
+    isLoading,
+    initEnvironment,
+    resetEnv,
+    runAlgorithm
+  } = useExperiment();
+
+  // 环境配置状态
+  const [envConfig, setEnvConfig] = useState<EnvironmentConfig>({
+    type: 'basic',
+    gridSize: 4,
+    stepReward: -1.0,
+    terminalReward: 0.0,
+    gamma: 1.0
   });
 
-  const [isTraining, setIsTraining] = useState(false);
+  // 算法配置状态
+  const [algoConfig, setAlgoConfig] = useState<AlgorithmConfig>({
+    algorithm: 'policy_iteration',
+    gamma: 1.0,
+    theta: 1e-6,
+    maxIterations: 1000,
+    learningRate: 0.1,
+    epsilon: 0.1,
+    maxEpisodes: 500
+  });
+
+  // 演示速度
   const [speed, setSpeed] = useState(50);
 
-  const handleConfigChange = (key: keyof TrainingConfig, value: any) => {
-    setConfig(prev => ({ ...prev, [key]: value }));
+  // 更新环境配置
+  const handleEnvConfigChange = (key: keyof EnvironmentConfig, value: any) => {
+    setEnvConfig(prev => ({ ...prev, [key]: value }));
+    if (key === 'gridSize') {
+      updateGridSize(value);
+    }
   };
 
-  const handleStartTraining = () => {
-    setIsTraining(true);
-    // TODO: 通过 WebSocket 发送开始训练命令
-    console.log('开始训练，配置:', config);
+  // 更新算法配置
+  const handleAlgoConfigChange = (key: keyof AlgorithmConfig, value: any) => {
+    setAlgoConfig(prev => ({ ...prev, [key]: value }));
   };
 
-  const handlePauseTraining = () => {
-    setIsTraining(false);
-    // TODO: 通过 WebSocket 发送暂停训练命令
-    console.log('暂停训练');
+  // 初始化环境并运行
+  const handleStartTraining = async () => {
+    // 如果没有环境，先创建
+    let currentEnvId = envId;
+    if (!currentEnvId) {
+      currentEnvId = await initEnvironment(envConfig);
+      if (!currentEnvId) return;
+    }
+
+    // 运行算法
+    await runAlgorithm(algoConfig);
   };
 
-  const handleResetTraining = () => {
-    setIsTraining(false);
-    // TODO: 通过 WebSocket 发送重置训练命令
-    console.log('重置训练');
-  };
-
-  const handleStepForward = () => {
-    // TODO: 通过 WebSocket 发送单步执行命令
-    console.log('单步执行');
+  // 重置
+  const handleReset = async () => {
+    await resetEnv();
   };
 
   return (
     <div className="left-panel">
-      <Card title="算法配置" size="small" className="config-card">
+      {/* 环境配置 */}
+      <Card
+        title={
+          <span>
+            <SettingOutlined /> 环境配置
+          </span>
+        }
+        size="small"
+        className="config-card"
+        extra={
+          envId ? (
+            <Badge status="success" text="已创建" />
+          ) : (
+            <Badge status="default" text="未创建" />
+          )
+        }
+      >
         <Form layout="vertical" size="small">
-          <Form.Item label="算法选择">
+          <Form.Item label="实验类型">
             <Select
-              value={config.algorithm}
-              onChange={(value) => handleConfigChange('algorithm', value)}
+              value={envConfig.type}
+              onChange={(value) => handleEnvConfigChange('type', value)}
               style={{ width: '100%' }}
             >
-              <Option value="q-learning">Q-Learning</Option>
-              <Option value="sarsa">SARSA</Option>
-              <Option value="dqn">DQN (深度Q网络)</Option>
+              <Option value="basic">基础网格世界</Option>
+              <Option value="windy" disabled>有风网格世界</Option>
+              <Option value="cliff" disabled>悬崖行走</Option>
             </Select>
           </Form.Item>
 
-          <Form.Item label="迷宫大小">
+          <Form.Item label="网格大小">
             <InputNumber
-              min={5}
-              max={50}
-              value={config.mazeSize}
-              onChange={(value) => handleConfigChange('mazeSize', value)}
+              min={3}
+              max={10}
+              value={envConfig.gridSize}
+              onChange={(value) => handleEnvConfigChange('gridSize', value)}
               style={{ width: '100%' }}
               addonAfter="× N"
             />
           </Form.Item>
 
-          <Form.Item label={`学习率 (α): ${config.learningRate}`}>
+          <Form.Item label={`步长奖励: ${envConfig.stepReward}`}>
             <Slider
-              min={0.01}
-              max={1}
-              step={0.01}
-              value={config.learningRate}
-              onChange={(value) => handleConfigChange('learningRate', value)}
+              min={-5}
+              max={0}
+              step={0.1}
+              value={envConfig.stepReward}
+              onChange={(value) => handleEnvConfigChange('stepReward', value)}
             />
           </Form.Item>
 
-          <Form.Item label={`折扣因子 (γ): ${config.discountFactor}`}>
-            <Slider
-              min={0}
-              max={1}
-              step={0.01}
-              value={config.discountFactor}
-              onChange={(value) => handleConfigChange('discountFactor', value)}
-            />
-          </Form.Item>
-
-          <Form.Item label={`探索率 (ε): ${config.epsilon}`}>
+          <Form.Item label={`折扣因子 (γ): ${envConfig.gamma}`}>
             <Slider
               min={0}
               max={1}
               step={0.01}
-              value={config.epsilon}
-              onChange={(value) => handleConfigChange('epsilon', value)}
+              value={envConfig.gamma}
+              onChange={(value) => handleEnvConfigChange('gamma', value)}
             />
           </Form.Item>
+        </Form>
+      </Card>
 
-          <Form.Item label="训练回合数">
+      {/* 算法配置 */}
+      <Card
+        title={
+          <span>
+            <ExperimentOutlined /> 算法配置
+          </span>
+        }
+        size="small"
+        className="config-card"
+      >
+        <Form layout="vertical" size="small">
+          <Form.Item label="算法选择">
+            <Select
+              value={algoConfig.algorithm}
+              onChange={(value) => handleAlgoConfigChange('algorithm', value)}
+              style={{ width: '100%' }}
+            >
+              <Option value="policy_evaluation">策略评估</Option>
+              <Option value="policy_iteration">策略迭代</Option>
+              <Option value="value_iteration">值迭代</Option>
+              <Option value="sarsa" disabled>SARSA</Option>
+              <Option value="q_learning" disabled>Q-Learning</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item label={`收敛阈值 (θ): ${algoConfig.theta}`}>
+            <Select
+              value={algoConfig.theta}
+              onChange={(value) => handleAlgoConfigChange('theta', value)}
+              style={{ width: '100%' }}
+            >
+              <Option value={1e-4}>1e-4 (快速)</Option>
+              <Option value={1e-6}>1e-6 (标准)</Option>
+              <Option value={1e-8}>1e-8 (精确)</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item label="最大迭代次数">
             <InputNumber
               min={100}
-              max={100000}
+              max={10000}
               step={100}
-              value={config.episodes}
-              onChange={(value) => handleConfigChange('episodes', value)}
+              value={algoConfig.maxIterations}
+              onChange={(value) => handleAlgoConfigChange('maxIterations', value)}
               style={{ width: '100%' }}
             />
           </Form.Item>
         </Form>
       </Card>
 
+      {/* 训练控制 */}
       <Card title="训练控制" size="small" className="control-card">
         <Space direction="vertical" style={{ width: '100%' }}>
           <div className="speed-control">
             <span>演示速度: {speed}%</span>
-            <Slider
-              min={1}
-              max={100}
-              value={speed}
-              onChange={setSpeed}
-            />
+            <Slider min={1} max={100} value={speed} onChange={setSpeed} />
           </div>
 
           <Divider style={{ margin: '8px 0' }} />
 
-          <Space wrap>
-            {isTraining ? (
-              <Button
-                type="primary"
-                icon={<PauseCircleOutlined />}
-                onClick={handlePauseTraining}
-                danger
-              >
-                暂停
-              </Button>
-            ) : (
+          <Space wrap style={{ width: '100%', justifyContent: 'center' }}>
+            <Tooltip title="开始训练">
               <Button
                 type="primary"
                 icon={<PlayCircleOutlined />}
                 onClick={handleStartTraining}
+                loading={isLoading}
+                disabled={isRunning}
               >
-                开始训练
+                {envId ? '开始训练' : '创建并训练'}
               </Button>
-            )}
+            </Tooltip>
 
-            <Button
-              icon={<StepForwardOutlined />}
-              onClick={handleStepForward}
-              disabled={isTraining}
-            >
-              单步
-            </Button>
-
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={handleResetTraining}
-            >
-              重置
-            </Button>
+            <Tooltip title="重置环境">
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={handleReset}
+                disabled={!envId || isRunning}
+              >
+                重置
+              </Button>
+            </Tooltip>
           </Space>
         </Space>
+      </Card>
+
+      {/* 可视化设置 */}
+      <Card title="可视化设置" size="small" className="config-card">
+        <Form layout="horizontal" size="small">
+          <Form.Item label="值函数热力图" style={{ marginBottom: 8 }}>
+            <Switch
+              checked={visualization.showValueHeatmap}
+              onChange={(checked) => setVisualization({ showValueHeatmap: checked })}
+            />
+          </Form.Item>
+
+          <Form.Item label="策略箭头" style={{ marginBottom: 8 }}>
+            <Switch
+              checked={visualization.showPolicyArrows}
+              onChange={(checked) => setVisualization({ showPolicyArrows: checked })}
+            />
+          </Form.Item>
+
+          <Form.Item label="显示Agent" style={{ marginBottom: 8 }}>
+            <Switch
+              checked={visualization.showAgent}
+              onChange={(checked) => setVisualization({ showAgent: checked })}
+            />
+          </Form.Item>
+
+          <Form.Item label="相机模式" style={{ marginBottom: 0 }}>
+            <Select
+              value={visualization.cameraMode}
+              onChange={(value) => setVisualization({ cameraMode: value })}
+              size="small"
+              style={{ width: 100 }}
+            >
+              <Option value="orbit">环绕</Option>
+              <Option value="topdown">俯视</Option>
+              <Option value="follow">跟随</Option>
+            </Select>
+          </Form.Item>
+        </Form>
       </Card>
     </div>
   );

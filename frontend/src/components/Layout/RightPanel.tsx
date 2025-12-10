@@ -1,160 +1,156 @@
+/**
+ * RightPanel - 右侧数据统计面板
+ */
+
 import React from 'react';
-import { Card, Statistic, Row, Col, Progress, Table, Tag } from 'antd';
-import { LineChartOutlined, TrophyOutlined, ClockCircleOutlined, AimOutlined } from '@ant-design/icons';
-
-interface TrainingStats {
-  currentEpisode: number;
-  totalEpisodes: number;
-  totalReward: number;
-  avgReward: number;
-  successRate: number;
-  stepsInCurrentEpisode: number;
-  bestPath: number;
-  explorationRate: number;
-}
-
-interface QValueEntry {
-  state: string;
-  up: number;
-  down: number;
-  left: number;
-  right: number;
-}
+import { Card, Statistic, Row, Col, Progress, Table, Tag, Empty } from 'antd';
+import {
+  LineChartOutlined,
+  TrophyOutlined,
+  ClockCircleOutlined,
+  AimOutlined,
+  CheckCircleOutlined
+} from '@ant-design/icons';
+import { useExperimentStore } from '../../store';
 
 const RightPanel: React.FC = () => {
-  // 示例数据 - 后续会通过 WebSocket 更新
-  const stats: TrainingStats = {
-    currentEpisode: 0,
-    totalEpisodes: 1000,
-    totalReward: 0,
-    avgReward: 0,
-    successRate: 0,
-    stepsInCurrentEpisode: 0,
-    bestPath: 0,
-    explorationRate: 10,
-  };
+  const {
+    expId,
+    result,
+    currentIteration,
+    progress,
+    isRunning,
+    gridSize,
+    grid
+  } = useExperimentStore();
 
-  // Q值表示例数据
-  const qValueData: QValueEntry[] = [
-    { state: '(0,0)', up: 0.00, down: 0.00, left: 0.00, right: 0.00 },
-    { state: '(0,1)', up: 0.00, down: 0.00, left: 0.00, right: 0.00 },
-    { state: '(1,0)', up: 0.00, down: 0.00, left: 0.00, right: 0.00 },
-    { state: '(1,1)', up: 0.00, down: 0.00, left: 0.00, right: 0.00 },
-  ];
+  // Q值表数据（取前几个状态）
+  const qValueData = grid.slice(0, 2).flatMap(row =>
+    row.slice(0, 2).map(cell => ({
+      key: cell.state,
+      state: `(${cell.row},${cell.col})`,
+      up: cell.qValues[0]?.toFixed(2) || '0.00',
+      down: cell.qValues[1]?.toFixed(2) || '0.00',
+      left: cell.qValues[2]?.toFixed(2) || '0.00',
+      right: cell.qValues[3]?.toFixed(2) || '0.00',
+      value: cell.value.toFixed(2)
+    }))
+  );
 
   const qValueColumns = [
     { title: '状态', dataIndex: 'state', key: 'state', width: 60 },
-    {
-      title: '↑',
-      dataIndex: 'up',
-      key: 'up',
-      width: 50,
-      render: (val: number) => val.toFixed(2)
-    },
-    {
-      title: '↓',
-      dataIndex: 'down',
-      key: 'down',
-      width: 50,
-      render: (val: number) => val.toFixed(2)
-    },
-    {
-      title: '←',
-      dataIndex: 'left',
-      key: 'left',
-      width: 50,
-      render: (val: number) => val.toFixed(2)
-    },
-    {
-      title: '→',
-      dataIndex: 'right',
-      key: 'right',
-      width: 50,
-      render: (val: number) => val.toFixed(2)
-    },
+    { title: 'V(s)', dataIndex: 'value', key: 'value', width: 60 },
+    { title: '↑', dataIndex: 'up', key: 'up', width: 50 },
+    { title: '↓', dataIndex: 'down', key: 'down', width: 50 },
+    { title: '←', dataIndex: 'left', key: 'left', width: 50 },
+    { title: '→', dataIndex: 'right', key: 'right', width: 50 }
   ];
 
   return (
     <div className="right-panel">
+      {/* 训练进度 */}
       <Card title="训练进度" size="small" className="stats-card">
         <Progress
-          percent={Math.round((stats.currentEpisode / stats.totalEpisodes) * 100)}
-          status="active"
-          format={() => `${stats.currentEpisode}/${stats.totalEpisodes}`}
+          percent={Math.round(progress * 100)}
+          status={isRunning ? 'active' : result?.converged ? 'success' : 'normal'}
+          format={() =>
+            result
+              ? `${result.totalIterations} 次迭代`
+              : isRunning
+              ? '运行中...'
+              : '待开始'
+          }
         />
+        {result && (
+          <div style={{ marginTop: 8, fontSize: 12, color: '#666' }}>
+            {result.converged ? (
+              <Tag color="success" icon={<CheckCircleOutlined />}>
+                已收敛
+              </Tag>
+            ) : (
+              <Tag color="warning">未收敛</Tag>
+            )}
+            <span style={{ marginLeft: 8 }}>
+              耗时: {result.executionTime.toFixed(3)}s
+            </span>
+          </div>
+        )}
       </Card>
 
-      <Card title="实时统计" size="small" className="stats-card">
+      {/* 实时统计 */}
+      <Card title="实验统计" size="small" className="stats-card">
         <Row gutter={[8, 8]}>
           <Col span={12}>
             <Statistic
-              title="当前回合奖励"
-              value={stats.totalReward}
-              precision={2}
-              prefix={<TrophyOutlined />}
-              valueStyle={{ fontSize: '16px' }}
-            />
-          </Col>
-          <Col span={12}>
-            <Statistic
-              title="平均奖励"
-              value={stats.avgReward}
-              precision={2}
-              prefix={<LineChartOutlined />}
-              valueStyle={{ fontSize: '16px' }}
-            />
-          </Col>
-          <Col span={12}>
-            <Statistic
-              title="成功率"
-              value={stats.successRate}
-              suffix="%"
+              title="网格大小"
+              value={`${gridSize}×${gridSize}`}
               prefix={<AimOutlined />}
               valueStyle={{ fontSize: '16px' }}
             />
           </Col>
           <Col span={12}>
             <Statistic
-              title="当前步数"
-              value={stats.stepsInCurrentEpisode}
+              title="状态数"
+              value={gridSize * gridSize}
+              prefix={<LineChartOutlined />}
+              valueStyle={{ fontSize: '16px' }}
+            />
+          </Col>
+          <Col span={12}>
+            <Statistic
+              title="迭代次数"
+              value={result?.totalIterations || currentIteration}
               prefix={<ClockCircleOutlined />}
+              valueStyle={{ fontSize: '16px' }}
+            />
+          </Col>
+          <Col span={12}>
+            <Statistic
+              title="回合数"
+              value={result?.totalEpisodes || 0}
+              prefix={<TrophyOutlined />}
               valueStyle={{ fontSize: '16px' }}
             />
           </Col>
         </Row>
       </Card>
 
-      <Card title="最优路径" size="small" className="stats-card">
-        <div style={{ textAlign: 'center' }}>
-          {stats.bestPath > 0 ? (
-            <>
-              <Statistic
-                title="最短路径步数"
-                value={stats.bestPath}
-                valueStyle={{ color: '#52c41a' }}
-              />
-              <Tag color="success" style={{ marginTop: 8 }}>已找到最优解</Tag>
-            </>
-          ) : (
-            <Tag color="processing">训练中...</Tag>
-          )}
-        </div>
+      {/* 算法信息 */}
+      <Card title="算法信息" size="small" className="stats-card">
+        {result ? (
+          <div>
+            <p>
+              <strong>算法:</strong>{' '}
+              <Tag color="blue">{result.algorithm}</Tag>
+            </p>
+            <p>
+              <strong>实验ID:</strong>{' '}
+              <span style={{ fontSize: 12, color: '#888' }}>{expId}</span>
+            </p>
+          </div>
+        ) : (
+          <Empty description="暂无实验数据" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+        )}
       </Card>
 
+      {/* 值函数表 */}
       <Card
-        title="Q值表 (部分)"
+        title="值函数 V(s)"
         size="small"
         className="stats-card q-table-card"
-        extra={<Tag color="blue">实时更新</Tag>}
+        extra={result && <Tag color="green">已计算</Tag>}
       >
-        <Table
-          dataSource={qValueData}
-          columns={qValueColumns}
-          size="small"
-          pagination={false}
-          rowKey="state"
-          scroll={{ y: 150 }}
-        />
+        {qValueData.length > 0 ? (
+          <Table
+            dataSource={qValueData}
+            columns={qValueColumns}
+            size="small"
+            pagination={false}
+            scroll={{ y: 150 }}
+          />
+        ) : (
+          <Empty description="运行算法后显示" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+        )}
       </Card>
     </div>
   );
