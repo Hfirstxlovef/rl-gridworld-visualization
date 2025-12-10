@@ -1,159 +1,465 @@
 """
 Algorithm API - 算法控制接口
+
+提供强化学习算法的启动、控制和结果查询功能。
+支持动态规划(DP)、策略迭代、值迭代等算法。
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List
 from enum import Enum
+from datetime import datetime
+import uuid
 import asyncio
+
+from ...services.environment.basic_grid import BasicGridEnv
+from ...services.algorithm.dp_solver import (
+    DPSolver,
+    DPResult,
+    DPAlgorithmType,
+    IterationRecord,
+    create_dp_solver
+)
+from ...services.export.xml_exporter import (
+    XMLExporter,
+    ExperimentMetadata,
+    export_experiment
+)
+from .environment import environments, _get_env_instance
 
 router = APIRouter(prefix="/algorithm", tags=["Algorithm"])
 
 
 class AlgorithmType(str, Enum):
-    """算法类型枚举"""
-    DP = "dp"  # 动态规划
-    SARSA = "sarsa"  # Sarsa
-    QLEARNING = "qlearning"  # Q-Learning
+    """算法类型"""
+    POLICY_EVALUATION = "policy_evaluation"
+    POLICY_ITERATION = "policy_iteration"
+    VALUE_ITERATION = "value_iteration"
+    SARSA = "sarsa"
+    Q_LEARNING = "q_learning"
 
 
-class AlgorithmStatus(str, Enum):
-    """算法状态枚举"""
-    IDLE = "idle"
-    RUNNING = "running"
-    PAUSED = "paused"
-    COMPLETED = "completed"
-    FAILED = "failed"
-
-
-class StartAlgorithmRequest(BaseModel):
+class AlgorithmStartRequest(BaseModel):
     """启动算法请求"""
     env_id: str = Field(..., description="环境ID")
     algorithm: AlgorithmType = Field(..., description="算法类型")
-    params: Optional[Dict[str, Any]] = Field(default=None, description="算法参数")
+    gamma: float = Field(default=1.0, ge=0.0, le=1.0, description="折扣因子")
+    theta: float = Field(default=1e-6, ge=0.0, description="收敛阈值")
+    max_iterations: int = Field(default=1000, ge=1, le=100000, description="最大迭代次数")
+
+    # TD算法参数（Sarsa/Q-Learning）
+    learning_rate: float = Field(default=0.1, ge=0.0, le=1.0, description="学习率")
+    epsilon: float = Field(default=0.1, ge=0.0, le=1.0, description="探索率")
+    max_episodes: int = Field(default=500, ge=1, le=10000, description="最大回合数")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "env_id": "env_abc123",
+                "algorithm": "policy_iteration",
+                "gamma": 1.0,
+                "theta": 1e-6,
+                "max_iterations": 1000
+            }
+        }
 
 
-class AlgorithmParams(BaseModel):
-    """算法参数"""
-    gamma: float = Field(default=1.0, ge=0, le=1, description="折扣因子")
-    alpha: float = Field(default=0.5, ge=0, le=1, description="学习率")
-    epsilon: float = Field(default=0.1, ge=0, le=1, description="探索率")
-    theta: float = Field(default=1e-6, gt=0, description="收敛阈值")
-    max_episodes: int = Field(default=500, ge=1, description="最大回合数")
-    max_steps: int = Field(default=100, ge=1, description="每回合最大步数")
+class AlgorithmControlRequest(BaseModel):
+    """算法控制请求"""
+    action: str = Field(..., description="控制动作: pause/resume/stop/step")
 
 
-class AlgorithmResponse(BaseModel):
-    """算法响应"""
+class AlgorithmStatusResponse(BaseModel):
+    """算法状态响应"""
     exp_id: str
     env_id: str
     algorithm: AlgorithmType
-    status: AlgorithmStatus
-    params: Dict[str, Any]
+    status: str
+    progress: float
+    current_iteration: int
+    converged: bool
+    execution_time: float
 
 
-class AlgorithmProgressResponse(BaseModel):
-    """算法进度响应"""
+class AlgorithmResultResponse(BaseModel):
+    """算法结果响应"""
     exp_id: str
-    status: AlgorithmStatus
-    current_episode: int
+    algorithm: str
+    converged: bool
+    total_iterations: int
     total_episodes: int
-    current_step: int
-    progress_percent: float
+    execution_time: float
+    final_values: List[float]
+    final_policy: List[List[float]]
+    policy_arrows: Dict[str, List[str]]
+    value_grid: List[List[float]]
 
 
-# 内存中存储实验实例
-experiments: Dict[str, Dict] = {}
-exp_counter = 0
+class IterationDataResponse(BaseModel):
+    """迭代数据响应"""
+    iteration: int
+    state: int
+    action: Optional[str]
+    old_value: float
+    new_value: float
+    delta: float
 
 
-@router.post("/start", response_model=AlgorithmResponse)
-async def start_algorithm(request: StartAlgorithmRequest):
+# 实验存储
+experiments: Dict[str, Dict[str, Any]] = {}
+
+
+@router.post("/start", response_model=AlgorithmStatusResponse)
+async def start_algorithm(request: AlgorithmStartRequest, background_tasks: BackgroundTasks):
     """
     启动算法训练
 
     - **env_id**: 环境ID
-    - **algorithm**: 算法类型 (dp/sarsa/qlearning)
-    - **params**: 算法参数
+    - **algorithm**: 算法类型
+    - **gamma**: 折扣因子
+    - **theta**: 收敛阈值
+    - **max_iterations**: 最大迭代次数
     """
-    global exp_counter
-    exp_counter += 1
-    exp_id = f"exp_{exp_counter}"
+    # 验证环境存在
+    env = _get_env_instance(request.env_id)
+    env_data = environments[request.env_id]
 
-    # 默认参数
-    default_params = AlgorithmParams().model_dump()
-    if request.params:
-        default_params.update(request.params)
+    # 创建实验ID
+    exp_id = f"exp_{uuid.uuid4().hex[:8]}"
+    created_at = datetime.now()
 
-    exp_data = {
+    # 根据算法类型创建求解器
+    if request.algorithm in [AlgorithmType.POLICY_EVALUATION,
+                             AlgorithmType.POLICY_ITERATION,
+                             AlgorithmType.VALUE_ITERATION]:
+        solver = DPSolver(
+            env=env,
+            gamma=request.gamma,
+            theta=request.theta,
+            max_iterations=request.max_iterations
+        )
+    else:
+        raise HTTPException(
+            status_code=501,
+            detail=f"Algorithm '{request.algorithm}' not yet implemented"
+        )
+
+    # 存储实验信息
+    experiments[exp_id] = {
         "exp_id": exp_id,
         "env_id": request.env_id,
         "algorithm": request.algorithm,
-        "status": AlgorithmStatus.RUNNING,
-        "params": default_params,
-        "current_episode": 0,
-        "total_episodes": default_params["max_episodes"],
-        "current_step": 0,
+        "solver": solver,
+        "status": "running",
+        "progress": 0.0,
+        "current_iteration": 0,
+        "converged": False,
+        "execution_time": 0.0,
+        "result": None,
+        "created_at": created_at,
+        "config": {
+            "gamma": request.gamma,
+            "theta": request.theta,
+            "max_iterations": request.max_iterations
+        }
     }
 
-    experiments[exp_id] = exp_data
+    # 在后台执行算法
+    background_tasks.add_task(run_algorithm, exp_id, request.algorithm)
 
-    return AlgorithmResponse(**exp_data)
-
-
-@router.post("/stop")
-async def stop_algorithm(exp_id: str):
-    """停止算法训练"""
-    if exp_id not in experiments:
-        raise HTTPException(status_code=404, detail=f"Experiment {exp_id} not found")
-
-    experiments[exp_id]["status"] = AlgorithmStatus.PAUSED
-    return {"status": "stopped", "exp_id": exp_id}
-
-
-@router.post("/resume")
-async def resume_algorithm(exp_id: str):
-    """恢复算法训练"""
-    if exp_id not in experiments:
-        raise HTTPException(status_code=404, detail=f"Experiment {exp_id} not found")
-
-    experiments[exp_id]["status"] = AlgorithmStatus.RUNNING
-    return {"status": "resumed", "exp_id": exp_id}
-
-
-@router.post("/reset")
-async def reset_algorithm(exp_id: str):
-    """重置算法"""
-    if exp_id not in experiments:
-        raise HTTPException(status_code=404, detail=f"Experiment {exp_id} not found")
-
-    experiments[exp_id]["status"] = AlgorithmStatus.IDLE
-    experiments[exp_id]["current_episode"] = 0
-    experiments[exp_id]["current_step"] = 0
-    return {"status": "reset", "exp_id": exp_id}
-
-
-@router.get("/status/{exp_id}", response_model=AlgorithmProgressResponse)
-async def get_algorithm_status(exp_id: str):
-    """查询算法状态"""
-    if exp_id not in experiments:
-        raise HTTPException(status_code=404, detail=f"Experiment {exp_id} not found")
-
-    exp = experiments[exp_id]
-    progress = (exp["current_episode"] / exp["total_episodes"]) * 100 if exp["total_episodes"] > 0 else 0
-
-    return AlgorithmProgressResponse(
+    return AlgorithmStatusResponse(
         exp_id=exp_id,
-        status=exp["status"],
-        current_episode=exp["current_episode"],
-        total_episodes=exp["total_episodes"],
-        current_step=exp["current_step"],
-        progress_percent=progress,
+        env_id=request.env_id,
+        algorithm=request.algorithm,
+        status="running",
+        progress=0.0,
+        current_iteration=0,
+        converged=False,
+        execution_time=0.0
     )
 
 
-@router.get("", response_model=List[AlgorithmResponse])
+async def run_algorithm(exp_id: str, algorithm: AlgorithmType):
+    """后台执行算法"""
+    if exp_id not in experiments:
+        return
+
+    exp_data = experiments[exp_id]
+    solver: DPSolver = exp_data["solver"]
+
+    try:
+        if algorithm == AlgorithmType.POLICY_EVALUATION:
+            # 只进行策略评估
+            solver.policy_evaluation()
+            result = DPResult(
+                algorithm=DPAlgorithmType.POLICY_EVALUATION,
+                converged=True,
+                total_iterations=len(solver.history),
+                total_episodes=1,
+                final_values=solver.V.copy(),
+                final_policy=solver.policy.copy(),
+                history=solver.history,
+                episode_history=[],
+                execution_time=0.0
+            )
+        elif algorithm == AlgorithmType.POLICY_ITERATION:
+            result = solver.policy_iteration()
+        elif algorithm == AlgorithmType.VALUE_ITERATION:
+            result = solver.value_iteration()
+        else:
+            raise ValueError(f"Unsupported algorithm: {algorithm}")
+
+        # 更新实验状态
+        exp_data["status"] = "completed"
+        exp_data["progress"] = 1.0
+        exp_data["current_iteration"] = result.total_iterations
+        exp_data["converged"] = result.converged
+        exp_data["execution_time"] = result.execution_time
+        exp_data["result"] = result
+
+    except Exception as e:
+        exp_data["status"] = "failed"
+        exp_data["error"] = str(e)
+
+
+@router.get("/status/{exp_id}", response_model=AlgorithmStatusResponse)
+async def get_algorithm_status(exp_id: str):
+    """获取算法执行状态"""
+    if exp_id not in experiments:
+        raise HTTPException(status_code=404, detail=f"Experiment {exp_id} not found")
+
+    exp_data = experiments[exp_id]
+
+    return AlgorithmStatusResponse(
+        exp_id=exp_id,
+        env_id=exp_data["env_id"],
+        algorithm=exp_data["algorithm"],
+        status=exp_data["status"],
+        progress=exp_data["progress"],
+        current_iteration=exp_data["current_iteration"],
+        converged=exp_data["converged"],
+        execution_time=exp_data["execution_time"]
+    )
+
+
+@router.get("/result/{exp_id}", response_model=AlgorithmResultResponse)
+async def get_algorithm_result(exp_id: str):
+    """获取算法执行结果"""
+    if exp_id not in experiments:
+        raise HTTPException(status_code=404, detail=f"Experiment {exp_id} not found")
+
+    exp_data = experiments[exp_id]
+
+    if exp_data["status"] != "completed":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Experiment not completed. Current status: {exp_data['status']}"
+        )
+
+    result: DPResult = exp_data["result"]
+    solver: DPSolver = exp_data["solver"]
+    env: BasicGridEnv = solver.env
+
+    # 构建值函数网格
+    value_grid = []
+    for row in range(env.grid_size):
+        row_values = []
+        for col in range(env.grid_size):
+            state = row * env.grid_size + col
+            row_values.append(float(result.final_values[state]))
+        value_grid.append(row_values)
+
+    # 获取策略箭头
+    policy_arrows = solver.get_policy_arrows()
+    # 转换key为字符串
+    policy_arrows_str = {str(k): v for k, v in policy_arrows.items()}
+
+    return AlgorithmResultResponse(
+        exp_id=exp_id,
+        algorithm=str(result.algorithm),
+        converged=result.converged,
+        total_iterations=result.total_iterations,
+        total_episodes=result.total_episodes,
+        execution_time=result.execution_time,
+        final_values=result.final_values.tolist(),
+        final_policy=result.final_policy.tolist(),
+        policy_arrows=policy_arrows_str,
+        value_grid=value_grid
+    )
+
+
+@router.get("/iterations/{exp_id}", response_model=List[IterationDataResponse])
+async def get_iterations(exp_id: str, limit: int = 100, offset: int = 0):
+    """获取迭代历史数据"""
+    if exp_id not in experiments:
+        raise HTTPException(status_code=404, detail=f"Experiment {exp_id} not found")
+
+    exp_data = experiments[exp_id]
+    solver: DPSolver = exp_data["solver"]
+
+    iterations = solver.history[offset:offset + limit]
+
+    return [
+        IterationDataResponse(
+            iteration=record.iteration,
+            state=record.state,
+            action=record.action,
+            old_value=record.old_value,
+            new_value=record.new_value,
+            delta=record.delta
+        )
+        for record in iterations
+    ]
+
+
+@router.post("/control/{exp_id}")
+async def control_algorithm(exp_id: str, request: AlgorithmControlRequest):
+    """
+    控制算法执行
+
+    - **action**: pause/resume/stop/step
+    """
+    if exp_id not in experiments:
+        raise HTTPException(status_code=404, detail=f"Experiment {exp_id} not found")
+
+    exp_data = experiments[exp_id]
+    action = request.action.lower()
+
+    if action == "stop":
+        exp_data["status"] = "stopped"
+        return {"status": "stopped", "exp_id": exp_id}
+    elif action == "pause":
+        exp_data["status"] = "paused"
+        return {"status": "paused", "exp_id": exp_id}
+    elif action == "resume":
+        if exp_data["status"] == "paused":
+            exp_data["status"] = "running"
+        return {"status": exp_data["status"], "exp_id": exp_id}
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown action: {action}. Use: pause/resume/stop/step"
+        )
+
+
+@router.post("/run-sync")
+async def run_algorithm_sync(request: AlgorithmStartRequest):
+    """
+    同步执行算法（等待完成后返回结果）
+
+    适用于小规模实验，直接返回完整结果。
+    """
+    # 验证环境存在
+    env = _get_env_instance(request.env_id)
+    env_data = environments[request.env_id]
+
+    exp_id = f"exp_{uuid.uuid4().hex[:8]}"
+    created_at = datetime.now()
+
+    # 创建求解器
+    solver = DPSolver(
+        env=env,
+        gamma=request.gamma,
+        theta=request.theta,
+        max_iterations=request.max_iterations
+    )
+
+    # 执行算法
+    if request.algorithm == AlgorithmType.POLICY_EVALUATION:
+        solver.policy_evaluation()
+        result = DPResult(
+            algorithm=DPAlgorithmType.POLICY_EVALUATION,
+            converged=True,
+            total_iterations=len(solver.history),
+            total_episodes=1,
+            final_values=solver.V.copy(),
+            final_policy=solver.policy.copy(),
+            history=solver.history,
+            episode_history=[],
+            execution_time=0.0
+        )
+    elif request.algorithm == AlgorithmType.POLICY_ITERATION:
+        result = solver.policy_iteration()
+    elif request.algorithm == AlgorithmType.VALUE_ITERATION:
+        result = solver.value_iteration()
+    else:
+        raise HTTPException(
+            status_code=501,
+            detail=f"Algorithm '{request.algorithm}' not yet implemented"
+        )
+
+    # 存储实验
+    experiments[exp_id] = {
+        "exp_id": exp_id,
+        "env_id": request.env_id,
+        "algorithm": request.algorithm,
+        "solver": solver,
+        "status": "completed",
+        "progress": 1.0,
+        "current_iteration": result.total_iterations,
+        "converged": result.converged,
+        "execution_time": result.execution_time,
+        "result": result,
+        "created_at": created_at,
+        "config": {
+            "gamma": request.gamma,
+            "theta": request.theta,
+            "max_iterations": request.max_iterations
+        }
+    }
+
+    # 构建值函数网格
+    value_grid = []
+    for row in range(env.grid_size):
+        row_values = []
+        for col in range(env.grid_size):
+            state = row * env.grid_size + col
+            row_values.append(float(result.final_values[state]))
+        value_grid.append(row_values)
+
+    policy_arrows = solver.get_policy_arrows()
+    policy_arrows_str = {str(k): v for k, v in policy_arrows.items()}
+
+    return {
+        "exp_id": exp_id,
+        "algorithm": str(result.algorithm),
+        "converged": result.converged,
+        "total_iterations": result.total_iterations,
+        "total_episodes": result.total_episodes,
+        "execution_time": result.execution_time,
+        "final_values": result.final_values.tolist(),
+        "final_policy": result.final_policy.tolist(),
+        "policy_arrows": policy_arrows_str,
+        "value_grid": value_grid,
+        "value_text": solver.render_value_function(),
+        "policy_text": solver.render_policy()
+    }
+
+
+@router.get("", response_model=List[AlgorithmStatusResponse])
 async def list_experiments():
     """列出所有实验"""
-    return [AlgorithmResponse(**exp) for exp in experiments.values()]
+    return [
+        AlgorithmStatusResponse(
+            exp_id=exp_data["exp_id"],
+            env_id=exp_data["env_id"],
+            algorithm=exp_data["algorithm"],
+            status=exp_data["status"],
+            progress=exp_data["progress"],
+            current_iteration=exp_data["current_iteration"],
+            converged=exp_data["converged"],
+            execution_time=exp_data["execution_time"]
+        )
+        for exp_data in experiments.values()
+    ]
+
+
+@router.delete("/{exp_id}")
+async def delete_experiment(exp_id: str):
+    """删除实验"""
+    if exp_id not in experiments:
+        raise HTTPException(status_code=404, detail=f"Experiment {exp_id} not found")
+
+    del experiments[exp_id]
+    return {"status": "deleted", "exp_id": exp_id}
