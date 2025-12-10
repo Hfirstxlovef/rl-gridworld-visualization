@@ -3,15 +3,17 @@
  */
 
 import React from 'react';
-import { Card, Statistic, Row, Col, Progress, Table, Tag, Empty } from 'antd';
+import { Card, Statistic, Row, Col, Progress, Table, Tag, Empty, Tabs } from 'antd';
 import {
   LineChartOutlined,
   TrophyOutlined,
   ClockCircleOutlined,
   AimOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined,
+  TableOutlined
 } from '@ant-design/icons';
 import { useExperimentStore } from '../../store';
+import { ConvergenceChart } from '../Charts';
 
 const RightPanel: React.FC = () => {
   const {
@@ -21,29 +23,88 @@ const RightPanel: React.FC = () => {
     progress,
     isRunning,
     gridSize,
-    grid
+    grid,
+    convergenceHistory,
+    algorithmConfig
   } = useExperimentStore();
 
   // Q值表数据（取前几个状态）
-  const qValueData = grid.slice(0, 2).flatMap(row =>
-    row.slice(0, 2).map(cell => ({
+  const qValueData = grid.slice(0, Math.min(3, gridSize)).flatMap(row =>
+    row.slice(0, Math.min(3, gridSize)).map(cell => ({
       key: cell.state,
-      state: `(${cell.row},${cell.col})`,
-      up: cell.qValues[0]?.toFixed(2) || '0.00',
-      down: cell.qValues[1]?.toFixed(2) || '0.00',
-      left: cell.qValues[2]?.toFixed(2) || '0.00',
-      right: cell.qValues[3]?.toFixed(2) || '0.00',
-      value: cell.value.toFixed(2)
+      state: `S${cell.state}`,
+      position: `(${cell.row},${cell.col})`,
+      value: cell.value.toFixed(2),
+      type: cell.type
     }))
   );
 
   const qValueColumns = [
-    { title: '状态', dataIndex: 'state', key: 'state', width: 60 },
-    { title: 'V(s)', dataIndex: 'value', key: 'value', width: 60 },
-    { title: '↑', dataIndex: 'up', key: 'up', width: 50 },
-    { title: '↓', dataIndex: 'down', key: 'down', width: 50 },
-    { title: '←', dataIndex: 'left', key: 'left', width: 50 },
-    { title: '→', dataIndex: 'right', key: 'right', width: 50 }
+    { title: '状态', dataIndex: 'state', key: 'state', width: 50 },
+    { title: '位置', dataIndex: 'position', key: 'position', width: 60 },
+    {
+      title: 'V(s)',
+      dataIndex: 'value',
+      key: 'value',
+      width: 70,
+      render: (val: string, record: any) => (
+        <span style={{ color: record.type === 'terminal' ? '#ffd700' : '#00ff88' }}>
+          {val}
+        </span>
+      )
+    },
+    {
+      title: '类型',
+      dataIndex: 'type',
+      key: 'type',
+      width: 60,
+      render: (type: string) => (
+        <Tag color={type === 'terminal' ? 'gold' : 'default'} style={{ fontSize: 10 }}>
+          {type === 'terminal' ? '终止' : '普通'}
+        </Tag>
+      )
+    }
+  ];
+
+  const tabItems = [
+    {
+      key: 'convergence',
+      label: (
+        <span>
+          <LineChartOutlined /> 收敛曲线
+        </span>
+      ),
+      children: (
+        <ConvergenceChart
+          data={convergenceHistory}
+          theta={algorithmConfig.theta}
+          height={180}
+        />
+      )
+    },
+    {
+      key: 'values',
+      label: (
+        <span>
+          <TableOutlined /> 值函数表
+        </span>
+      ),
+      children: (
+        <Card size="small" bodyStyle={{ padding: 8 }}>
+          {qValueData.length > 0 ? (
+            <Table
+              dataSource={qValueData}
+              columns={qValueColumns}
+              size="small"
+              pagination={false}
+              scroll={{ y: 150 }}
+            />
+          ) : (
+            <Empty description="运行算法后显示" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+          )}
+        </Card>
+      )
+    }
   ];
 
   return (
@@ -106,8 +167,8 @@ const RightPanel: React.FC = () => {
           </Col>
           <Col span={12}>
             <Statistic
-              title="回合数"
-              value={result?.totalEpisodes || 0}
+              title="收敛点数"
+              value={convergenceHistory.length}
               prefix={<TrophyOutlined />}
               valueStyle={{ fontSize: '16px' }}
             />
@@ -118,14 +179,18 @@ const RightPanel: React.FC = () => {
       {/* 算法信息 */}
       <Card title="算法信息" size="small" className="stats-card">
         {result ? (
-          <div>
-            <p>
+          <div style={{ fontSize: 12 }}>
+            <p style={{ marginBottom: 4 }}>
               <strong>算法:</strong>{' '}
               <Tag color="blue">{result.algorithm}</Tag>
             </p>
-            <p>
+            <p style={{ marginBottom: 4 }}>
+              <strong>收敛阈值:</strong>{' '}
+              <span style={{ color: '#00ff88' }}>{algorithmConfig.theta}</span>
+            </p>
+            <p style={{ marginBottom: 0, wordBreak: 'break-all' }}>
               <strong>实验ID:</strong>{' '}
-              <span style={{ fontSize: 12, color: '#888' }}>{expId}</span>
+              <span style={{ color: '#888' }}>{expId?.slice(0, 8)}...</span>
             </p>
           </div>
         ) : (
@@ -133,24 +198,13 @@ const RightPanel: React.FC = () => {
         )}
       </Card>
 
-      {/* 值函数表 */}
-      <Card
-        title="值函数 V(s)"
-        size="small"
-        className="stats-card q-table-card"
-        extra={result && <Tag color="green">已计算</Tag>}
-      >
-        {qValueData.length > 0 ? (
-          <Table
-            dataSource={qValueData}
-            columns={qValueColumns}
-            size="small"
-            pagination={false}
-            scroll={{ y: 150 }}
-          />
-        ) : (
-          <Empty description="运行算法后显示" image={Empty.PRESENTED_IMAGE_SIMPLE} />
-        )}
+      {/* 收敛曲线和值函数表切换 */}
+      <Card size="small" className="stats-card" bodyStyle={{ padding: '8px 12px' }}>
+        <Tabs
+          items={tabItems}
+          size="small"
+          defaultActiveKey="convergence"
+        />
       </Card>
     </div>
   );

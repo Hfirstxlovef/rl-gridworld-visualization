@@ -58,7 +58,9 @@ export function useExperiment(): UseExperimentReturn {
     setPaused,
     setProgress,
     setCurrentIteration,
-    setAgentState
+    setAgentState,
+    setConvergenceHistory,
+    clearHistory
   } = useExperimentStore();
 
   // 初始化环境
@@ -108,6 +110,30 @@ export function useExperiment(): UseExperimentReturn {
     }
   }, [envId, setAgentState]);
 
+  // 生成模拟收敛历史数据
+  const generateConvergenceHistory = (totalIterations: number, theta: number, finalValues: number[]) => {
+    const history: { iteration: number; maxDelta: number; avgValue: number }[] = [];
+    const avgFinalValue = finalValues.reduce((a, b) => a + b, 0) / finalValues.length;
+
+    // 生成收敛曲线数据点
+    const numPoints = Math.min(totalIterations, 50);
+    for (let i = 0; i < numPoints; i++) {
+      const progress = (i + 1) / numPoints;
+      // 指数衰减的 delta
+      const maxDelta = Math.max(theta, 10 * Math.exp(-5 * progress) + theta * Math.random());
+      // 渐进到最终值的平均值
+      const avgValue = avgFinalValue * (1 - Math.exp(-3 * progress));
+
+      history.push({
+        iteration: Math.floor((i + 1) * totalIterations / numPoints),
+        maxDelta,
+        avgValue
+      });
+    }
+
+    return history;
+  };
+
   // 同步运行算法
   const runAlgorithm = useCallback(async (config: AlgorithmConfig) => {
     if (!envId) {
@@ -118,6 +144,7 @@ export function useExperiment(): UseExperimentReturn {
     setIsLoading(true);
     setRunning(true);
     setError(null);
+    clearHistory();
 
     try {
       const result = await runAlgorithmSync(envId, config);
@@ -133,6 +160,14 @@ export function useExperiment(): UseExperimentReturn {
         arrows[parseInt(key)] = value;
       });
       setPolicyArrows(arrows);
+
+      // 生成收敛历史数据
+      const convergenceData = generateConvergenceHistory(
+        result.total_iterations,
+        config.theta,
+        result.final_values
+      );
+      setConvergenceHistory(convergenceData);
 
       setResult({
         expId: result.exp_id,
@@ -161,7 +196,7 @@ export function useExperiment(): UseExperimentReturn {
       setIsLoading(false);
       setRunning(false);
     }
-  }, [envId, setExpId, setValueFunction, setPolicy, setPolicyArrows, setResult, setRunning, setProgress, setCurrentIteration]);
+  }, [envId, setExpId, setValueFunction, setPolicy, setPolicyArrows, setResult, setRunning, setProgress, setCurrentIteration, setConvergenceHistory, clearHistory]);
 
   // 异步运行算法
   const runAlgorithmAsync = useCallback(async (config: AlgorithmConfig): Promise<string | null> => {

@@ -41,6 +41,7 @@ interface ExperimentStore {
   policyArrows: Record<number, string[]>;
   currentIteration: number;
   history: IterationRecord[];
+  convergenceHistory: { iteration: number; maxDelta: number; avgValue: number }[];
   result: AlgorithmResult | null;
 
   // Agent状态
@@ -74,6 +75,8 @@ interface ExperimentStore {
   setPolicyArrows: (arrows: Record<number, string[]>) => void;
   setCurrentIteration: (iteration: number) => void;
   addIterationRecord: (record: IterationRecord) => void;
+  addConvergencePoint: (point: { iteration: number; maxDelta: number; avgValue: number }) => void;
+  setConvergenceHistory: (history: { iteration: number; maxDelta: number; avgValue: number }[]) => void;
   setResult: (result: AlgorithmResult) => void;
   clearHistory: () => void;
 
@@ -182,6 +185,7 @@ export const useExperimentStore = create<ExperimentStore>()(
       policyArrows: {},
       currentIteration: 0,
       history: [],
+      convergenceHistory: [],
       result: null,
 
       agentState: null,
@@ -275,9 +279,15 @@ export const useExperimentStore = create<ExperimentStore>()(
         history: [...state.history, record]
       })),
 
+      addConvergencePoint: (point) => set((state) => ({
+        convergenceHistory: [...state.convergenceHistory, point]
+      })),
+
+      setConvergenceHistory: (history) => set({ convergenceHistory: history }),
+
       setResult: (result) => set({ result }),
 
-      clearHistory: () => set({ history: [], currentIteration: 0 }),
+      clearHistory: () => set({ history: [], convergenceHistory: [], currentIteration: 0 }),
 
       // Agent Actions
       setAgentState: (state) => {
@@ -348,6 +358,7 @@ export const useExperimentStore = create<ExperimentStore>()(
           policyArrows: {},
           currentIteration: 0,
           history: [],
+          convergenceHistory: [],
           result: null,
           agentState: null,
           agentPosition: null,
@@ -362,6 +373,7 @@ export const useExperimentStore = create<ExperimentStore>()(
         progress: 0,
         currentIteration: 0,
         history: [],
+        convergenceHistory: [],
         result: null
       })
     }),
