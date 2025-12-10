@@ -1,0 +1,220 @@
+<?xml version="1.0" ?>
+<Experiment xmlns="http://rl-gridworld.edu/schema" version="1.0">
+  <Metadata>
+    <ExperimentID>example-cliff-qlearning</ExperimentID>
+    <ExperimentType>cliff</ExperimentType>
+    <Algorithm>q_learning</Algorithm>
+    <CreatedAt>2025-12-10T14:20:16.695390</CreatedAt>
+  </Metadata>
+  <Configuration>
+    <GridSize>12</GridSize>
+    <DiscountFactor>1.0</DiscountFactor>
+    <ConvergenceThreshold>0.0</ConvergenceThreshold>
+    <StepReward>-1.0</StepReward>
+  </Configuration>
+  <ExecutionSummary>
+    <Converged>true</Converged>
+    <TotalIterations>10264</TotalIterations>
+    <TotalEpisodes>500</TotalEpisodes>
+    <ExecutionTime>0.0271</ExecutionTime>
+  </ExecutionSummary>
+  <IterationHistory/>
+  <FinalResult>
+    <ValueFunction>
+      <State id="0" row="0" col="0">-11.286534</State>
+      <State id="1" row="0" col="1">-10.849063</State>
+      <State id="2" row="0" col="2">-10.089187</State>
+      <State id="3" row="0" col="3">-9.279723</State>
+      <State id="4" row="0" col="4">-8.433110</State>
+      <State id="5" row="0" col="5">-7.566833</State>
+      <State id="6" row="0" col="6">-6.672750</State>
+      <State id="7" row="0" col="7">-5.777737</State>
+      <State id="8" row="0" col="8">-4.859657</State>
+      <State id="9" row="0" col="9">-3.925705</State>
+      <State id="10" row="0" col="10">-2.969780</State>
+      <State id="11" row="0" col="11">-1.998557</State>
+      <State id="12" row="1" col="0">-11.836942</State>
+      <State id="13" row="1" col="1">-10.993578</State>
+      <State id="14" row="1" col="2">-9.996957</State>
+      <State id="15" row="1" col="3">-8.998523</State>
+      <State id="16" row="1" col="4">-7.999546</State>
+      <State id="17" row="1" col="5">-6.999918</State>
+      <State id="18" row="1" col="6">-5.999964</State>
+      <State id="19" row="1" col="7">-4.999986</State>
+      <State id="20" row="1" col="8">-3.999996</State>
+      <State id="21" row="1" col="9">-3.000000</State>
+      <State id="22" row="1" col="10">-2.000000</State>
+      <State id="23" row="1" col="11">-1.000000</State>
+      <State id="24" row="2" col="0">-11.000000</State>
+      <State id="25" row="2" col="1">-10.000000</State>
+      <State id="26" row="2" col="2">-9.000000</State>
+      <State id="27" row="2" col="3">-8.000000</State>
+      <State id="28" row="2" col="4">-7.000000</State>
+      <State id="29" row="2" col="5">-6.000000</State>
+      <State id="30" row="2" col="6">-5.000000</State>
+      <State id="31" row="2" col="7">-4.000000</State>
+      <State id="32" row="2" col="8">-3.000000</State>
+      <State id="33" row="2" col="9">-2.000000</State>
+      <State id="34" row="2" col="10">-1.000000</State>
+      <State id="35" row="2" col="11">0.000000</State>
+      <State id="36" row="3" col="0">-12.000000</State>
+      <State id="37" row="3" col="1">0.000000</State>
+      <State id="38" row="3" col="2">0.000000</State>
+      <State id="39" row="3" col="3">0.000000</State>
+      <State id="40" row="3" col="4">0.000000</State>
+      <State id="41" row="3" col="5">0.000000</State>
+      <State id="42" row="3" col="6">0.000000</State>
+      <State id="43" row="3" col="7">0.000000</State>
+      <State id="44" row="3" col="8">0.000000</State>
+      <State id="45" row="3" col="9">0.000000</State>
+      <State id="46" row="3" col="10">0.000000</State>
+      <State id="47" row="3" col="11">0.000000</State>
+    </ValueFunction>
+    <Policy>
+      <State id="0" row="0" col="0">
+        <Action name="down" probability="1.0000"/>
+      </State>
+      <State id="1" row="0" col="1">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="2" row="0" col="2">
+        <Action name="down" probability="1.0000"/>
+      </State>
+      <State id="3" row="0" col="3">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="4" row="0" col="4">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="5" row="0" col="5">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="6" row="0" col="6">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="7" row="0" col="7">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="8" row="0" col="8">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="9" row="0" col="9">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="10" row="0" col="10">
+        <Action name="down" probability="1.0000"/>
+      </State>
+      <State id="11" row="0" col="11">
+        <Action name="down" probability="1.0000"/>
+      </State>
+      <State id="12" row="1" col="0">
+        <Action name="up" probability="1.0000"/>
+      </State>
+      <State id="13" row="1" col="1">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="14" row="1" col="2">
+        <Action name="down" probability="1.0000"/>
+      </State>
+      <State id="15" row="1" col="3">
+        <Action name="down" probability="1.0000"/>
+      </State>
+      <State id="16" row="1" col="4">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="17" row="1" col="5">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="18" row="1" col="6">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="19" row="1" col="7">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="20" row="1" col="8">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="21" row="1" col="9">
+        <Action name="down" probability="1.0000"/>
+      </State>
+      <State id="22" row="1" col="10">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="23" row="1" col="11">
+        <Action name="down" probability="1.0000"/>
+      </State>
+      <State id="24" row="2" col="0">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="25" row="2" col="1">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="26" row="2" col="2">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="27" row="2" col="3">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="28" row="2" col="4">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="29" row="2" col="5">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="30" row="2" col="6">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="31" row="2" col="7">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="32" row="2" col="8">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="33" row="2" col="9">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="34" row="2" col="10">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="35" row="2" col="11">
+        <Action name="down" probability="1.0000"/>
+      </State>
+      <State id="36" row="3" col="0">
+        <Action name="up" probability="1.0000"/>
+      </State>
+      <State id="37" row="3" col="1">
+        <Action name="up" probability="1.0000"/>
+      </State>
+      <State id="38" row="3" col="2">
+        <Action name="up" probability="1.0000"/>
+      </State>
+      <State id="39" row="3" col="3">
+        <Action name="up" probability="1.0000"/>
+      </State>
+      <State id="40" row="3" col="4">
+        <Action name="up" probability="1.0000"/>
+      </State>
+      <State id="41" row="3" col="5">
+        <Action name="up" probability="1.0000"/>
+      </State>
+      <State id="42" row="3" col="6">
+        <Action name="up" probability="1.0000"/>
+      </State>
+      <State id="43" row="3" col="7">
+        <Action name="up" probability="1.0000"/>
+      </State>
+      <State id="44" row="3" col="8">
+        <Action name="up" probability="1.0000"/>
+      </State>
+      <State id="45" row="3" col="9">
+        <Action name="up" probability="1.0000"/>
+      </State>
+      <State id="46" row="3" col="10">
+        <Action name="up" probability="1.0000"/>
+      </State>
+      <State id="47" row="3" col="11">
+        <Action name="up" probability="1.0000"/>
+      </State>
+    </Policy>
+  </FinalResult>
+</Experiment>

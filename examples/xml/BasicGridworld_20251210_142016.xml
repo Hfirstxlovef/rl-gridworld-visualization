@@ -1,0 +1,495 @@
+<?xml version="1.0" ?>
+<Experiment xmlns="http://rl-gridworld.edu/schema" version="1.0">
+  <Metadata>
+    <ExperimentID>example-basic-policy-iter</ExperimentID>
+    <ExperimentType>basic</ExperimentType>
+    <Algorithm>policy_iteration</Algorithm>
+    <CreatedAt>2025-12-10T14:20:16.614464</CreatedAt>
+  </Metadata>
+  <Configuration>
+    <GridSize>4</GridSize>
+    <DiscountFactor>1.0</DiscountFactor>
+    <ConvergenceThreshold>1e-06</ConvergenceThreshold>
+    <StepReward>-1.0</StepReward>
+  </Configuration>
+  <ExecutionSummary>
+    <Converged>true</Converged>
+    <TotalIterations>2366</TotalIterations>
+    <TotalEpisodes>2</TotalEpisodes>
+    <ExecutionTime>0.0047</ExecutionTime>
+  </ExecutionSummary>
+  <IterationHistory>
+    <Iteration number="0">
+      <State>1</State>
+      <OldValue>0.000000</OldValue>
+      <NewValue>-0.750000</NewValue>
+      <Delta>0.750000</Delta>
+      <Timestamp>1765347616.609866</Timestamp>
+    </Iteration>
+    <Iteration number="0">
+      <State>2</State>
+      <OldValue>0.000000</OldValue>
+      <NewValue>-1.187500</NewValue>
+      <Delta>1.187500</Delta>
+      <Timestamp>1765347616.609870</Timestamp>
+    </Iteration>
+    <Iteration number="0">
+      <State>3</State>
+      <OldValue>0.000000</OldValue>
+      <NewValue>-1.296875</NewValue>
+      <Delta>1.296875</Delta>
+      <Timestamp>1765347616.609873</Timestamp>
+    </Iteration>
+    <Iteration number="0">
+      <State>4</State>
+      <OldValue>0.000000</OldValue>
+      <NewValue>-0.750000</NewValue>
+      <Delta>0.750000</Delta>
+      <Timestamp>1765347616.609875</Timestamp>
+    </Iteration>
+    <Iteration number="0">
+      <State>5</State>
+      <OldValue>0.000000</OldValue>
+      <NewValue>-1.375000</NewValue>
+      <Delta>1.375000</Delta>
+      <Timestamp>1765347616.609878</Timestamp>
+    </Iteration>
+    <Iteration number="0">
+      <State>6</State>
+      <OldValue>0.000000</OldValue>
+      <NewValue>-1.640625</NewValue>
+      <Delta>1.640625</Delta>
+      <Timestamp>1765347616.609880</Timestamp>
+    </Iteration>
+    <Iteration number="0">
+      <State>7</State>
+      <OldValue>0.000000</OldValue>
+      <NewValue>-1.734375</NewValue>
+      <Delta>1.734375</Delta>
+      <Timestamp>1765347616.609882</Timestamp>
+    </Iteration>
+    <Iteration number="0">
+      <State>8</State>
+      <OldValue>0.000000</OldValue>
+      <NewValue>-1.187500</NewValue>
+      <Delta>1.187500</Delta>
+      <Timestamp>1765347616.609884</Timestamp>
+    </Iteration>
+    <Iteration number="0">
+      <State>9</State>
+      <OldValue>0.000000</OldValue>
+      <NewValue>-1.640625</NewValue>
+      <Delta>1.640625</Delta>
+      <Timestamp>1765347616.609886</Timestamp>
+    </Iteration>
+    <Iteration number="0">
+      <State>10</State>
+      <OldValue>0.000000</OldValue>
+      <NewValue>-1.820312</NewValue>
+      <Delta>1.820312</Delta>
+      <Timestamp>1765347616.609888</Timestamp>
+    </Iteration>
+    <Iteration number="0">
+      <State>11</State>
+      <OldValue>0.000000</OldValue>
+      <NewValue>-1.638672</NewValue>
+      <Delta>1.638672</Delta>
+      <Timestamp>1765347616.609889</Timestamp>
+    </Iteration>
+    <Iteration number="0">
+      <State>12</State>
+      <OldValue>0.000000</OldValue>
+      <NewValue>-1.296875</NewValue>
+      <Delta>1.296875</Delta>
+      <Timestamp>1765347616.609891</Timestamp>
+    </Iteration>
+    <Iteration number="0">
+      <State>13</State>
+      <OldValue>0.000000</OldValue>
+      <NewValue>-1.734375</NewValue>
+      <Delta>1.734375</Delta>
+      <Timestamp>1765347616.609893</Timestamp>
+    </Iteration>
+    <Iteration number="0">
+      <State>14</State>
+      <OldValue>0.000000</OldValue>
+      <NewValue>-1.638672</NewValue>
+      <Delta>1.638672</Delta>
+      <Timestamp>1765347616.609894</Timestamp>
+    </Iteration>
+    <Iteration number="1">
+      <State>1</State>
+      <OldValue>-0.750000</OldValue>
+      <NewValue>-1.578125</NewValue>
+      <Delta>0.828125</Delta>
+      <Timestamp>1765347616.609897</Timestamp>
+    </Iteration>
+    <Iteration number="1">
+      <State>2</State>
+      <OldValue>-1.187500</OldValue>
+      <NewValue>-2.425781</NewValue>
+      <Delta>1.238281</Delta>
+      <Timestamp>1765347616.609899</Timestamp>
+    </Iteration>
+    <Iteration number="1">
+      <State>3</State>
+      <OldValue>-1.296875</OldValue>
+      <NewValue>-2.688477</NewValue>
+      <Delta>1.391602</Delta>
+      <Timestamp>1765347616.609901</Timestamp>
+    </Iteration>
+    <Iteration number="1">
+      <State>4</State>
+      <OldValue>-0.750000</OldValue>
+      <NewValue>-1.578125</NewValue>
+      <Delta>0.828125</Delta>
+      <Timestamp>1765347616.609902</Timestamp>
+    </Iteration>
+    <Iteration number="1">
+      <State>5</State>
+      <OldValue>-1.375000</OldValue>
+      <NewValue>-2.609375</NewValue>
+      <Delta>1.234375</Delta>
+      <Timestamp>1765347616.609904</Timestamp>
+    </Iteration>
+    <Iteration number="1">
+      <State>6</State>
+      <OldValue>-1.640625</OldValue>
+      <NewValue>-3.147461</NewValue>
+      <Delta>1.506836</Delta>
+      <Timestamp>1765347616.609906</Timestamp>
+    </Iteration>
+    <Iteration number="1">
+      <State>7</State>
+      <OldValue>-1.734375</OldValue>
+      <NewValue>-3.302246</NewValue>
+      <Delta>1.567871</Delta>
+      <Timestamp>1765347616.609907</Timestamp>
+    </Iteration>
+    <Iteration number="1">
+      <State>8</State>
+      <OldValue>-1.187500</OldValue>
+      <NewValue>-2.425781</NewValue>
+      <Delta>1.238281</Delta>
+      <Timestamp>1765347616.609909</Timestamp>
+    </Iteration>
+    <Iteration number="1">
+      <State>9</State>
+      <OldValue>-1.640625</OldValue>
+      <NewValue>-3.147461</NewValue>
+      <Delta>1.506836</Delta>
+      <Timestamp>1765347616.609911</Timestamp>
+    </Iteration>
+    <Iteration number="1">
+      <State>10</State>
+      <OldValue>-1.820312</OldValue>
+      <NewValue>-3.393066</NewValue>
+      <Delta>1.572754</Delta>
+      <Timestamp>1765347616.609912</Timestamp>
+    </Iteration>
+    <Iteration number="1">
+      <State>11</State>
+      <OldValue>-1.638672</OldValue>
+      <NewValue>-2.833496</NewValue>
+      <Delta>1.194824</Delta>
+      <Timestamp>1765347616.609914</Timestamp>
+    </Iteration>
+    <Iteration number="1">
+      <State>12</State>
+      <OldValue>-1.296875</OldValue>
+      <NewValue>-2.688477</NewValue>
+      <Delta>1.391602</Delta>
+      <Timestamp>1765347616.609916</Timestamp>
+    </Iteration>
+    <Iteration number="1">
+      <State>13</State>
+      <OldValue>-1.734375</OldValue>
+      <NewValue>-3.302246</NewValue>
+      <Delta>1.567871</Delta>
+      <Timestamp>1765347616.609917</Timestamp>
+    </Iteration>
+    <Iteration number="1">
+      <State>14</State>
+      <OldValue>-1.638672</OldValue>
+      <NewValue>-2.833496</NewValue>
+      <Delta>1.194824</Delta>
+      <Timestamp>1765347616.609919</Timestamp>
+    </Iteration>
+    <Iteration number="2">
+      <State>1</State>
+      <OldValue>-1.578125</OldValue>
+      <NewValue>-2.403320</NewValue>
+      <Delta>0.825195</Delta>
+      <Timestamp>1765347616.609921</Timestamp>
+    </Iteration>
+    <Iteration number="2">
+      <State>2</State>
+      <OldValue>-2.425781</OldValue>
+      <NewValue>-3.666260</NewValue>
+      <Delta>1.240479</Delta>
+      <Timestamp>1765347616.609923</Timestamp>
+    </Iteration>
+    <Iteration number="2">
+      <State>3</State>
+      <OldValue>-2.688477</OldValue>
+      <NewValue>-4.086365</NewValue>
+      <Delta>1.397888</Delta>
+      <Timestamp>1765347616.609924</Timestamp>
+    </Iteration>
+    <Iteration number="2">
+      <State>4</State>
+      <OldValue>-1.578125</OldValue>
+      <NewValue>-2.403320</NewValue>
+      <Delta>0.825195</Delta>
+      <Timestamp>1765347616.609926</Timestamp>
+    </Iteration>
+    <Iteration number="2">
+      <State>5</State>
+      <OldValue>-2.609375</OldValue>
+      <NewValue>-3.775391</NewValue>
+      <Delta>1.166016</Delta>
+      <Timestamp>1765347616.609928</Timestamp>
+    </Iteration>
+    <Iteration number="2">
+      <State>6</State>
+      <OldValue>-3.147461</OldValue>
+      <NewValue>-4.534241</NewValue>
+      <Delta>1.386780</Delta>
+      <Timestamp>1765347616.609929</Timestamp>
+    </Iteration>
+    <Iteration number="2">
+      <State>7</State>
+      <OldValue>-3.302246</OldValue>
+      <NewValue>-4.689087</NewValue>
+      <Delta>1.386841</Delta>
+      <Timestamp>1765347616.609931</Timestamp>
+    </Iteration>
+    <Iteration number="2">
+      <State>8</State>
+      <OldValue>-2.425781</OldValue>
+      <NewValue>-3.666260</NewValue>
+      <Delta>1.240479</Delta>
+      <Timestamp>1765347616.609933</Timestamp>
+    </Iteration>
+    <Iteration number="2">
+      <State>9</State>
+      <OldValue>-3.147461</OldValue>
+      <NewValue>-4.534241</NewValue>
+      <Delta>1.386780</Delta>
+      <Timestamp>1765347616.609934</Timestamp>
+    </Iteration>
+    <Iteration number="2">
+      <State>10</State>
+      <OldValue>-3.393066</OldValue>
+      <NewValue>-4.683868</NewValue>
+      <Delta>1.290802</Delta>
+      <Timestamp>1765347616.609936</Timestamp>
+    </Iteration>
+    <Iteration number="2">
+      <State>11</State>
+      <OldValue>-2.833496</OldValue>
+      <NewValue>-3.801613</NewValue>
+      <Delta>0.968117</Delta>
+      <Timestamp>1765347616.609937</Timestamp>
+    </Iteration>
+    <Iteration number="2">
+      <State>12</State>
+      <OldValue>-2.688477</OldValue>
+      <NewValue>-4.086365</NewValue>
+      <Delta>1.397888</Delta>
+      <Timestamp>1765347616.609939</Timestamp>
+    </Iteration>
+    <Iteration number="2">
+      <State>13</State>
+      <OldValue>-3.302246</OldValue>
+      <NewValue>-4.689087</NewValue>
+      <Delta>1.386841</Delta>
+      <Timestamp>1765347616.609940</Timestamp>
+    </Iteration>
+    <Iteration number="2">
+      <State>14</State>
+      <OldValue>-2.833496</OldValue>
+      <NewValue>-3.801613</NewValue>
+      <Delta>0.968117</Delta>
+      <Timestamp>1765347616.609942</Timestamp>
+    </Iteration>
+    <Iteration number="3">
+      <State>1</State>
+      <OldValue>-2.403320</OldValue>
+      <NewValue>-3.211243</NewValue>
+      <Delta>0.807922</Delta>
+      <Timestamp>1765347616.609944</Timestamp>
+    </Iteration>
+    <Iteration number="3">
+      <State>2</State>
+      <OldValue>-3.666260</OldValue>
+      <NewValue>-4.874527</NewValue>
+      <Delta>1.208267</Delta>
+      <Timestamp>1765347616.609946</Timestamp>
+    </Iteration>
+    <Iteration number="3">
+      <State>3</State>
+      <OldValue>-4.086365</OldValue>
+      <NewValue>-5.434086</NewValue>
+      <Delta>1.347721</Delta>
+      <Timestamp>1765347616.609947</Timestamp>
+    </Iteration>
+    <Iteration number="3">
+      <State>4</State>
+      <OldValue>-2.403320</OldValue>
+      <NewValue>-3.211243</NewValue>
+      <Delta>0.807922</Delta>
+      <Timestamp>1765347616.609949</Timestamp>
+    </Iteration>
+    <Iteration number="3">
+      <State>5</State>
+      <OldValue>-3.775391</OldValue>
+      <NewValue>-4.872742</NewValue>
+      <Delta>1.097351</Delta>
+      <Timestamp>1765347616.609962</Timestamp>
+    </Iteration>
+    <Iteration number="3">
+      <State>6</State>
+      <OldValue>-4.534241</OldValue>
+      <NewValue>-5.780056</NewValue>
+      <Delta>1.245815</Delta>
+      <Timestamp>1765347616.609964</Timestamp>
+    </Iteration>
+    <Iteration number="3">
+      <State>7</State>
+      <OldValue>-4.689087</OldValue>
+      <NewValue>-5.926210</NewValue>
+      <Delta>1.237123</Delta>
+      <Timestamp>1765347616.609966</Timestamp>
+    </Iteration>
+    <Iteration number="3">
+      <State>8</State>
+      <OldValue>-3.666260</OldValue>
+      <NewValue>-4.874527</NewValue>
+      <Delta>1.208267</Delta>
+      <Timestamp>1765347616.609968</Timestamp>
+    </Iteration>
+  </IterationHistory>
+  <EpisodeHistory>
+    <Episode number="0">
+      <PolicyStable>false</PolicyStable>
+      <MaxDelta>1.820312</MaxDelta>
+      <ValueFunction>
+        <State id="0">0.000000</State>
+        <State id="1">-12.999993</State>
+        <State id="2">-18.999990</State>
+        <State id="3">-20.999989</State>
+        <State id="4">-12.999993</State>
+        <State id="5">-16.999992</State>
+        <State id="6">-18.999991</State>
+        <State id="7">-18.999991</State>
+        <State id="8">-18.999990</State>
+        <State id="9">-18.999991</State>
+        <State id="10">-16.999992</State>
+        <State id="11">-12.999994</State>
+        <State id="12">-20.999989</State>
+        <State id="13">-18.999991</State>
+        <State id="14">-12.999994</State>
+        <State id="15">0.000000</State>
+      </ValueFunction>
+    </Episode>
+    <Episode number="1">
+      <PolicyStable>true</PolicyStable>
+      <MaxDelta>18.999989</MaxDelta>
+      <ValueFunction>
+        <State id="0">0.000000</State>
+        <State id="1">0.000000</State>
+        <State id="2">-1.000000</State>
+        <State id="3">-2.000000</State>
+        <State id="4">0.000000</State>
+        <State id="5">-1.000000</State>
+        <State id="6">-2.000000</State>
+        <State id="7">-1.000000</State>
+        <State id="8">-1.000000</State>
+        <State id="9">-2.000000</State>
+        <State id="10">-1.000000</State>
+        <State id="11">0.000000</State>
+        <State id="12">-2.000000</State>
+        <State id="13">-1.000000</State>
+        <State id="14">0.000000</State>
+        <State id="15">0.000000</State>
+      </ValueFunction>
+    </Episode>
+  </EpisodeHistory>
+  <FinalResult>
+    <ValueFunction>
+      <State id="0" row="0" col="0">0.000000</State>
+      <State id="1" row="0" col="1">0.000000</State>
+      <State id="2" row="0" col="2">-1.000000</State>
+      <State id="3" row="0" col="3">-2.000000</State>
+      <State id="4" row="1" col="0">0.000000</State>
+      <State id="5" row="1" col="1">-1.000000</State>
+      <State id="6" row="1" col="2">-2.000000</State>
+      <State id="7" row="1" col="3">-1.000000</State>
+      <State id="8" row="2" col="0">-1.000000</State>
+      <State id="9" row="2" col="1">-2.000000</State>
+      <State id="10" row="2" col="2">-1.000000</State>
+      <State id="11" row="2" col="3">0.000000</State>
+      <State id="12" row="3" col="0">-2.000000</State>
+      <State id="13" row="3" col="1">-1.000000</State>
+      <State id="14" row="3" col="2">0.000000</State>
+      <State id="15" row="3" col="3">0.000000</State>
+    </ValueFunction>
+    <Policy>
+      <State id="0" row="0" col="0"/>
+      <State id="1" row="0" col="1">
+        <Action name="left" probability="1.0000"/>
+      </State>
+      <State id="2" row="0" col="2">
+        <Action name="left" probability="1.0000"/>
+      </State>
+      <State id="3" row="0" col="3">
+        <Action name="down" probability="0.5000"/>
+        <Action name="left" probability="0.5000"/>
+      </State>
+      <State id="4" row="1" col="0">
+        <Action name="up" probability="1.0000"/>
+      </State>
+      <State id="5" row="1" col="1">
+        <Action name="up" probability="0.5000"/>
+        <Action name="left" probability="0.5000"/>
+      </State>
+      <State id="6" row="1" col="2">
+        <Action name="up" probability="0.2500"/>
+        <Action name="down" probability="0.2500"/>
+        <Action name="left" probability="0.2500"/>
+        <Action name="right" probability="0.2500"/>
+      </State>
+      <State id="7" row="1" col="3">
+        <Action name="down" probability="1.0000"/>
+      </State>
+      <State id="8" row="2" col="0">
+        <Action name="up" probability="1.0000"/>
+      </State>
+      <State id="9" row="2" col="1">
+        <Action name="up" probability="0.2500"/>
+        <Action name="down" probability="0.2500"/>
+        <Action name="left" probability="0.2500"/>
+        <Action name="right" probability="0.2500"/>
+      </State>
+      <State id="10" row="2" col="2">
+        <Action name="down" probability="0.5000"/>
+        <Action name="right" probability="0.5000"/>
+      </State>
+      <State id="11" row="2" col="3">
+        <Action name="down" probability="1.0000"/>
+      </State>
+      <State id="12" row="3" col="0">
+        <Action name="up" probability="0.5000"/>
+        <Action name="right" probability="0.5000"/>
+      </State>
+      <State id="13" row="3" col="1">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="14" row="3" col="2">
+        <Action name="right" probability="1.0000"/>
+      </State>
+      <State id="15" row="3" col="3"/>
+    </Policy>
+  </FinalResult>
+</Experiment>
