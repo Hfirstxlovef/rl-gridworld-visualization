@@ -13,7 +13,7 @@ import {
   TableOutlined
 } from '@ant-design/icons';
 import { useExperimentStore } from '../../store';
-import { ConvergenceChart } from '../Charts';
+import { ConvergenceChart, LearningCurve } from '../Charts';
 
 const RightPanel: React.FC = () => {
   const {
@@ -25,8 +25,14 @@ const RightPanel: React.FC = () => {
     gridSize,
     grid,
     convergenceHistory,
-    algorithmConfig
+    algorithmConfig,
+    episodeRewards,
+    successRate,
+    avgReward
   } = useExperimentStore();
+
+  // 判断是否为TD算法
+  const isTDAlgorithm = ['sarsa', 'q_learning'].includes(algorithmConfig.algorithm);
 
   // Q值表数据（取前几个状态）
   const qValueData = grid.slice(0, Math.min(3, gridSize)).flatMap(row =>
@@ -68,13 +74,20 @@ const RightPanel: React.FC = () => {
 
   const tabItems = [
     {
-      key: 'convergence',
+      key: 'curve',
       label: (
         <span>
-          <LineChartOutlined /> 收敛曲线
+          <LineChartOutlined /> {isTDAlgorithm ? '学习曲线' : '收敛曲线'}
         </span>
       ),
-      children: (
+      children: isTDAlgorithm ? (
+        <LearningCurve
+          episodeRewards={episodeRewards}
+          windowSize={10}
+          height={180}
+          title="TD算法学习曲线"
+        />
+      ) : (
         <ConvergenceChart
           data={convergenceHistory}
           theta={algorithmConfig.theta}
@@ -114,19 +127,20 @@ const RightPanel: React.FC = () => {
         <Progress
           percent={Math.round(progress * 100)}
           status={isRunning ? 'active' : result?.converged ? 'success' : 'normal'}
-          format={() =>
-            result
-              ? `${result.totalIterations} 次迭代`
-              : isRunning
-              ? '运行中...'
-              : '待开始'
-          }
+          format={() => {
+            if (result) {
+              return isTDAlgorithm
+                ? `${result.totalEpisodes} 回合`
+                : `${result.totalIterations} 次迭代`;
+            }
+            return isRunning ? '运行中...' : '待开始';
+          }}
         />
         {result && (
           <div style={{ marginTop: 8, fontSize: 12, color: '#666' }}>
             {result.converged ? (
               <Tag color="success" icon={<CheckCircleOutlined />}>
-                已收敛
+                {isTDAlgorithm ? '训练完成' : '已收敛'}
               </Tag>
             ) : (
               <Tag color="warning">未收敛</Tag>
@@ -157,22 +171,45 @@ const RightPanel: React.FC = () => {
               valueStyle={{ fontSize: '16px' }}
             />
           </Col>
-          <Col span={12}>
-            <Statistic
-              title="迭代次数"
-              value={result?.totalIterations || currentIteration}
-              prefix={<ClockCircleOutlined />}
-              valueStyle={{ fontSize: '16px' }}
-            />
-          </Col>
-          <Col span={12}>
-            <Statistic
-              title="收敛点数"
-              value={convergenceHistory.length}
-              prefix={<TrophyOutlined />}
-              valueStyle={{ fontSize: '16px' }}
-            />
-          </Col>
+          {isTDAlgorithm ? (
+            <>
+              <Col span={12}>
+                <Statistic
+                  title="平均奖励"
+                  value={avgReward.toFixed(2)}
+                  prefix={<TrophyOutlined />}
+                  valueStyle={{ fontSize: '16px', color: avgReward >= 0 ? '#3f8600' : '#cf1322' }}
+                />
+              </Col>
+              <Col span={12}>
+                <Statistic
+                  title="成功率"
+                  value={`${(successRate * 100).toFixed(1)}%`}
+                  prefix={<CheckCircleOutlined />}
+                  valueStyle={{ fontSize: '16px', color: successRate >= 0.8 ? '#3f8600' : '#faad14' }}
+                />
+              </Col>
+            </>
+          ) : (
+            <>
+              <Col span={12}>
+                <Statistic
+                  title="迭代次数"
+                  value={result?.totalIterations || currentIteration}
+                  prefix={<ClockCircleOutlined />}
+                  valueStyle={{ fontSize: '16px' }}
+                />
+              </Col>
+              <Col span={12}>
+                <Statistic
+                  title="收敛点数"
+                  value={convergenceHistory.length}
+                  prefix={<TrophyOutlined />}
+                  valueStyle={{ fontSize: '16px' }}
+                />
+              </Col>
+            </>
+          )}
         </Row>
       </Card>
 
@@ -182,12 +219,27 @@ const RightPanel: React.FC = () => {
           <div style={{ fontSize: 12 }}>
             <p style={{ marginBottom: 4 }}>
               <strong>算法:</strong>{' '}
-              <Tag color="blue">{result.algorithm}</Tag>
+              <Tag color={isTDAlgorithm ? 'green' : 'blue'}>
+                {result.algorithm.toUpperCase()}
+              </Tag>
             </p>
-            <p style={{ marginBottom: 4 }}>
-              <strong>收敛阈值:</strong>{' '}
-              <span style={{ color: '#00ff88' }}>{algorithmConfig.theta}</span>
-            </p>
+            {isTDAlgorithm ? (
+              <>
+                <p style={{ marginBottom: 4 }}>
+                  <strong>学习率 (α):</strong>{' '}
+                  <span style={{ color: '#00ff88' }}>{algorithmConfig.learningRate}</span>
+                </p>
+                <p style={{ marginBottom: 4 }}>
+                  <strong>探索率 (ε):</strong>{' '}
+                  <span style={{ color: '#00ff88' }}>{algorithmConfig.epsilon}</span>
+                </p>
+              </>
+            ) : (
+              <p style={{ marginBottom: 4 }}>
+                <strong>收敛阈值 (θ):</strong>{' '}
+                <span style={{ color: '#00ff88' }}>{algorithmConfig.theta}</span>
+              </p>
+            )}
             <p style={{ marginBottom: 0, wordBreak: 'break-all' }}>
               <strong>实验ID:</strong>{' '}
               <span style={{ color: '#888' }}>{expId?.slice(0, 8)}...</span>

@@ -168,6 +168,11 @@ export interface AlgorithmResultResponse {
   value_grid: number[][];
   value_text?: string;
   policy_text?: string;
+  // TD算法特有字段
+  episode_rewards?: number[];
+  episode_lengths?: number[];
+  success_rate?: number;
+  avg_reward?: number;
 }
 
 export interface IterationDataResponse {

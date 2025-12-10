@@ -44,6 +44,12 @@ interface ExperimentStore {
   convergenceHistory: { iteration: number; maxDelta: number; avgValue: number }[];
   result: AlgorithmResult | null;
 
+  // TD算法数据
+  episodeRewards: number[];
+  episodeLengths: number[];
+  successRate: number;
+  avgReward: number;
+
   // Agent状态
   agentState: number | null;
   agentPosition: Position | null;
@@ -79,6 +85,9 @@ interface ExperimentStore {
   setConvergenceHistory: (history: { iteration: number; maxDelta: number; avgValue: number }[]) => void;
   setResult: (result: AlgorithmResult) => void;
   clearHistory: () => void;
+
+  // Actions - TD数据
+  setTDData: (data: { episodeRewards?: number[]; episodeLengths?: number[]; successRate?: number; avgReward?: number }) => void;
 
   // Actions - Agent
   setAgentState: (state: number | null) => void;
@@ -188,6 +197,11 @@ export const useExperimentStore = create<ExperimentStore>()(
       convergenceHistory: [],
       result: null,
 
+      episodeRewards: [],
+      episodeLengths: [],
+      successRate: 0,
+      avgReward: 0,
+
       agentState: null,
       agentPosition: null,
 
@@ -289,6 +303,14 @@ export const useExperimentStore = create<ExperimentStore>()(
 
       clearHistory: () => set({ history: [], convergenceHistory: [], currentIteration: 0 }),
 
+      // TD数据Actions
+      setTDData: (data) => set((state) => ({
+        episodeRewards: data.episodeRewards ?? state.episodeRewards,
+        episodeLengths: data.episodeLengths ?? state.episodeLengths,
+        successRate: data.successRate ?? state.successRate,
+        avgReward: data.avgReward ?? state.avgReward
+      })),
+
       // Agent Actions
       setAgentState: (state) => {
         if (state === null) {
@@ -360,6 +382,10 @@ export const useExperimentStore = create<ExperimentStore>()(
           history: [],
           convergenceHistory: [],
           result: null,
+          episodeRewards: [],
+          episodeLengths: [],
+          successRate: 0,
+          avgReward: 0,
           agentState: null,
           agentPosition: null,
           stats: defaultStats
@@ -374,7 +400,11 @@ export const useExperimentStore = create<ExperimentStore>()(
         currentIteration: 0,
         history: [],
         convergenceHistory: [],
-        result: null
+        result: null,
+        episodeRewards: [],
+        episodeLengths: [],
+        successRate: 0,
+        avgReward: 0
       })
     }),
     { name: 'experiment-store' }

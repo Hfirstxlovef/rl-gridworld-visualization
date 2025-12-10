@@ -126,22 +126,46 @@ const LeftPanel: React.FC = () => {
               onChange={(value) => handleEnvConfigChange('type', value)}
               style={{ width: '100%' }}
             >
-              <Option value="basic">基础网格世界</Option>
-              <Option value="windy" disabled>有风网格世界</Option>
-              <Option value="cliff" disabled>悬崖行走</Option>
+              <Option value="basic">基础网格世界 (4×4)</Option>
+              <Option value="windy">有风网格世界 (7×10)</Option>
+              <Option value="cliff">悬崖行走 (4×12)</Option>
             </Select>
           </Form.Item>
 
-          <Form.Item label="网格大小">
-            <InputNumber
-              min={3}
-              max={10}
-              value={envConfig.gridSize}
-              onChange={(value) => handleEnvConfigChange('gridSize', value)}
-              style={{ width: '100%' }}
-              addonAfter="× N"
-            />
-          </Form.Item>
+          {envConfig.type === 'basic' && (
+            <Form.Item label="网格大小">
+              <InputNumber
+                min={3}
+                max={10}
+                value={envConfig.gridSize}
+                onChange={(value) => handleEnvConfigChange('gridSize', value)}
+                style={{ width: '100%' }}
+                addonAfter="× N"
+              />
+            </Form.Item>
+          )}
+
+          {envConfig.type === 'windy' && (
+            <Form.Item label="网格大小">
+              <InputNumber
+                value={10}
+                disabled
+                style={{ width: '100%' }}
+                addonAfter="× 7 (固定)"
+              />
+            </Form.Item>
+          )}
+
+          {envConfig.type === 'cliff' && (
+            <Form.Item label="网格大小">
+              <InputNumber
+                value={12}
+                disabled
+                style={{ width: '100%' }}
+                addonAfter="× 4 (固定)"
+              />
+            </Form.Item>
+          )}
 
           <Form.Item label={`步长奖励: ${envConfig.stepReward}`}>
             <Slider
@@ -182,36 +206,77 @@ const LeftPanel: React.FC = () => {
               onChange={(value) => handleAlgoConfigChange('algorithm', value)}
               style={{ width: '100%' }}
             >
-              <Option value="policy_evaluation">策略评估</Option>
-              <Option value="policy_iteration">策略迭代</Option>
-              <Option value="value_iteration">值迭代</Option>
-              <Option value="sarsa" disabled>SARSA</Option>
-              <Option value="q_learning" disabled>Q-Learning</Option>
+              <Option value="policy_evaluation">策略评估 (DP)</Option>
+              <Option value="policy_iteration">策略迭代 (DP)</Option>
+              <Option value="value_iteration">值迭代 (DP)</Option>
+              <Option value="sarsa">SARSA (TD)</Option>
+              <Option value="q_learning">Q-Learning (TD)</Option>
             </Select>
           </Form.Item>
 
-          <Form.Item label={`收敛阈值 (θ): ${algoConfig.theta}`}>
-            <Select
-              value={algoConfig.theta}
-              onChange={(value) => handleAlgoConfigChange('theta', value)}
-              style={{ width: '100%' }}
-            >
-              <Option value={1e-4}>1e-4 (快速)</Option>
-              <Option value={1e-6}>1e-6 (标准)</Option>
-              <Option value={1e-8}>1e-8 (精确)</Option>
-            </Select>
-          </Form.Item>
+          {/* DP算法配置 */}
+          {['policy_evaluation', 'policy_iteration', 'value_iteration'].includes(algoConfig.algorithm) && (
+            <>
+              <Form.Item label={`收敛阈值 (θ): ${algoConfig.theta}`}>
+                <Select
+                  value={algoConfig.theta}
+                  onChange={(value) => handleAlgoConfigChange('theta', value)}
+                  style={{ width: '100%' }}
+                >
+                  <Option value={1e-4}>1e-4 (快速)</Option>
+                  <Option value={1e-6}>1e-6 (标准)</Option>
+                  <Option value={1e-8}>1e-8 (精确)</Option>
+                </Select>
+              </Form.Item>
 
-          <Form.Item label="最大迭代次数">
-            <InputNumber
-              min={100}
-              max={10000}
-              step={100}
-              value={algoConfig.maxIterations}
-              onChange={(value) => handleAlgoConfigChange('maxIterations', value)}
-              style={{ width: '100%' }}
-            />
-          </Form.Item>
+              <Form.Item label="最大迭代次数">
+                <InputNumber
+                  min={100}
+                  max={10000}
+                  step={100}
+                  value={algoConfig.maxIterations}
+                  onChange={(value) => handleAlgoConfigChange('maxIterations', value)}
+                  style={{ width: '100%' }}
+                />
+              </Form.Item>
+            </>
+          )}
+
+          {/* TD算法配置 (SARSA/Q-Learning) */}
+          {['sarsa', 'q_learning'].includes(algoConfig.algorithm) && (
+            <>
+              <Form.Item label={`学习率 (α): ${algoConfig.learningRate}`}>
+                <Slider
+                  min={0.01}
+                  max={1.0}
+                  step={0.01}
+                  value={algoConfig.learningRate}
+                  onChange={(value) => handleAlgoConfigChange('learningRate', value)}
+                />
+              </Form.Item>
+
+              <Form.Item label={`探索率 (ε): ${algoConfig.epsilon}`}>
+                <Slider
+                  min={0}
+                  max={1.0}
+                  step={0.01}
+                  value={algoConfig.epsilon}
+                  onChange={(value) => handleAlgoConfigChange('epsilon', value)}
+                />
+              </Form.Item>
+
+              <Form.Item label="最大回合数">
+                <InputNumber
+                  min={50}
+                  max={5000}
+                  step={50}
+                  value={algoConfig.maxEpisodes}
+                  onChange={(value) => handleAlgoConfigChange('maxEpisodes', value)}
+                  style={{ width: '100%' }}
+                />
+              </Form.Item>
+            </>
+          )}
         </Form>
       </Card>
 

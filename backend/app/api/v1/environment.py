@@ -16,6 +16,17 @@ from ...services.environment.basic_grid import (
     EnvironmentConfig,
     create_basic_grid_env
 )
+from ...services.environment.windy_grid import (
+    WindyGridEnv,
+    WindyGridConfig,
+    create_windy_grid_env
+)
+from ...services.environment.cliff_walking import (
+    CliffWalkingEnv,
+    CliffWalkingConfig,
+    create_cliff_walking_env
+)
+from typing import Union
 
 router = APIRouter(prefix="/environment", tags=["Environment"])
 
@@ -87,11 +98,37 @@ class StateInfoResponse(BaseModel):
 environments: Dict[str, Dict[str, Any]] = {}
 
 
-def _get_env_instance(env_id: str) -> BasicGridEnv:
+def _get_env_instance(env_id: str) -> Union[BasicGridEnv, WindyGridEnv, CliffWalkingEnv]:
     """获取环境实例"""
     if env_id not in environments:
         raise HTTPException(status_code=404, detail=f"Environment {env_id} not found")
     return environments[env_id]["instance"]
+
+
+def _get_env_grid_size(env) -> int:
+    """获取环境网格尺寸（兼容不同环境类型）"""
+    if hasattr(env, 'grid_size'):
+        return env.grid_size
+    elif hasattr(env, 'width'):
+        return env.width
+    else:
+        return int(env.n_states ** 0.5)
+
+
+def _get_env_terminal_states(env, env_type: EnvironmentType) -> List[int]:
+    """获取终止状态列表（兼容不同环境类型）"""
+    if env_type == EnvironmentType.BASIC:
+        return env.terminal_states
+    else:
+        return [env.goal_state]
+
+
+def _get_env_terminal_reward(env, env_type: EnvironmentType) -> float:
+    """获取终止奖励（兼容不同环境类型）"""
+    if env_type == EnvironmentType.BASIC:
+        return env.terminal_reward
+    else:
+        return env.goal_reward
 
 
 @router.post("", response_model=EnvironmentResponse)
@@ -117,11 +154,28 @@ async def create_environment(request: CreateEnvironmentRequest):
             gamma=request.gamma
         )
         env = BasicGridEnv(config)
+        grid_size = env.grid_size
+        terminal_states = env.terminal_states
+        terminal_reward = env.terminal_reward
+
+    elif request.type == EnvironmentType.WINDY:
+        # Windy Gridworld: 7x10
+        env = create_windy_grid_env()
+        grid_size = env.width  # 使用宽度作为主要尺寸
+        terminal_states = [env.goal_state]
+        terminal_reward = env.goal_reward
+
+    elif request.type == EnvironmentType.CLIFF:
+        # Cliff Walking: 4x12
+        env = create_cliff_walking_env()
+        grid_size = env.width
+        terminal_states = [env.goal_state]
+        terminal_reward = env.goal_reward
+
     else:
-        # TODO: 支持 Windy 和 Cliff 环境
         raise HTTPException(
             status_code=501,
-            detail=f"Environment type '{request.type}' not yet implemented"
+            detail=f"Environment type '{request.type}' not supported"
         )
 
     # 存储环境
@@ -131,9 +185,9 @@ async def create_environment(request: CreateEnvironmentRequest):
         "status": "created",
         "created_at": created_at,
         "config": {
-            "grid_size": request.grid_size,
+            "grid_size": grid_size,
             "step_reward": request.step_reward,
-            "terminal_reward": request.terminal_reward,
+            "terminal_reward": terminal_reward,
             "gamma": request.gamma
         }
     }
@@ -141,13 +195,13 @@ async def create_environment(request: CreateEnvironmentRequest):
     return EnvironmentResponse(
         env_id=env_id,
         type=request.type,
-        grid_size=env.grid_size,
+        grid_size=grid_size,
         n_states=env.n_states,
         n_actions=env.n_actions,
-        terminal_states=env.terminal_states,
+        terminal_states=terminal_states,
         step_reward=env.step_reward,
-        terminal_reward=env.terminal_reward,
-        gamma=env.gamma,
+        terminal_reward=terminal_reward,
+        gamma=request.gamma,
         status="created",
         created_at=created_at
     )
@@ -161,17 +215,18 @@ async def get_environment(env_id: str):
 
     env_data = environments[env_id]
     env = env_data["instance"]
+    env_type = env_data["type"]
 
     return EnvironmentResponse(
         env_id=env_id,
-        type=env_data["type"],
-        grid_size=env.grid_size,
+        type=env_type,
+        grid_size=_get_env_grid_size(env),
         n_states=env.n_states,
         n_actions=env.n_actions,
-        terminal_states=env.terminal_states,
+        terminal_states=_get_env_terminal_states(env, env_type),
         step_reward=env.step_reward,
-        terminal_reward=env.terminal_reward,
-        gamma=env.gamma,
+        terminal_reward=_get_env_terminal_reward(env, env_type),
+        gamma=env_data["config"]["gamma"],
         status=env_data["status"],
         created_at=env_data["created_at"]
     )
@@ -181,13 +236,18 @@ async def get_environment(env_id: str):
 async def get_environment_state(env_id: str):
     """获取环境当前状态"""
     env = _get_env_instance(env_id)
+    env_data = environments[env_id]
+    env_type = env_data["type"]
 
     # 生成网格表示
     grid = env.get_grid_representation().tolist()
 
+    # 获取终止状态
+    terminal_states = _get_env_terminal_states(env, env_type)
+
     # 获取终止状态的位置
     terminal_positions = [
-        list(env._state_to_position(ts)) for ts in env.terminal_states
+        list(env._state_to_position(ts)) for ts in terminal_states
     ]
 
     # 获取当前位置
@@ -200,10 +260,10 @@ async def get_environment_state(env_id: str):
         grid=grid,
         current_state=env.current_state,
         agent_position=agent_position,
-        terminal_states=env.terminal_states,
+        terminal_states=terminal_states,
         terminal_positions=terminal_positions,
         step_reward=env.step_reward,
-        terminal_reward=env.terminal_reward
+        terminal_reward=_get_env_terminal_reward(env, env_type)
     )
 
 
@@ -320,16 +380,17 @@ async def list_environments():
     result = []
     for env_id, env_data in environments.items():
         env = env_data["instance"]
+        env_type = env_data["type"]
         result.append(EnvironmentResponse(
             env_id=env_id,
-            type=env_data["type"],
-            grid_size=env.grid_size,
+            type=env_type,
+            grid_size=_get_env_grid_size(env),
             n_states=env.n_states,
             n_actions=env.n_actions,
-            terminal_states=env.terminal_states,
+            terminal_states=_get_env_terminal_states(env, env_type),
             step_reward=env.step_reward,
-            terminal_reward=env.terminal_reward,
-            gamma=env.gamma,
+            terminal_reward=_get_env_terminal_reward(env, env_type),
+            gamma=env_data["config"]["gamma"],
             status=env_data["status"],
             created_at=env_data["created_at"]
         ))

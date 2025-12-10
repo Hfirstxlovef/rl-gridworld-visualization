@@ -60,7 +60,8 @@ export function useExperiment(): UseExperimentReturn {
     setCurrentIteration,
     setAgentState,
     setConvergenceHistory,
-    clearHistory
+    clearHistory,
+    setTDData
   } = useExperimentStore();
 
   // 初始化环境
@@ -72,12 +73,25 @@ export function useExperiment(): UseExperimentReturn {
       // 创建环境
       const response = await createEnvironment(config);
 
+      // 根据环境类型设置网格大小
+      let gridSize = config.gridSize;
+      if (config.type === 'windy') {
+        gridSize = 10;  // 7x10 Windy Gridworld，使用宽度
+      } else if (config.type === 'cliff') {
+        gridSize = 12;  // 4x12 Cliff Walking，使用宽度
+      }
+
       // 更新状态
       setEnvId(response.env_id);
       setEnvConfig(config);
-      setGridSize(config.gridSize);
+      setGridSize(gridSize);
 
-      message.success(`环境创建成功: ${response.env_id}`);
+      const envNames: Record<string, string> = {
+        basic: '基础网格世界',
+        windy: '有风网格世界',
+        cliff: '悬崖行走'
+      };
+      message.success(`${envNames[config.type] || config.type} 创建成功!`);
       return response.env_id;
     } catch (err: any) {
       const errorMsg = err.response?.data?.detail || err.message || '创建环境失败';
@@ -161,13 +175,43 @@ export function useExperiment(): UseExperimentReturn {
       });
       setPolicyArrows(arrows);
 
-      // 生成收敛历史数据
-      const convergenceData = generateConvergenceHistory(
-        result.total_iterations,
-        config.theta,
-        result.final_values
-      );
-      setConvergenceHistory(convergenceData);
+      // 判断是否为TD算法
+      const isTDAlgorithm = ['sarsa', 'q_learning'].includes(config.algorithm);
+
+      if (isTDAlgorithm && result.episode_rewards) {
+        // TD算法：使用真实的episode数据生成学习曲线
+        setTDData({
+          episodeRewards: result.episode_rewards,
+          episodeLengths: result.episode_lengths,
+          successRate: result.success_rate,
+          avgReward: result.avg_reward
+        });
+
+        // 从episode_rewards生成收敛历史（使用滑动窗口平均）
+        const windowSize = Math.min(10, result.episode_rewards.length);
+        const convergenceData: { iteration: number; maxDelta: number; avgValue: number }[] = [];
+
+        for (let i = 0; i < result.episode_rewards.length; i += Math.ceil(result.episode_rewards.length / 50)) {
+          const start = Math.max(0, i - windowSize + 1);
+          const window = result.episode_rewards.slice(start, i + 1);
+          const avgReward = window.reduce((a, b) => a + b, 0) / window.length;
+
+          convergenceData.push({
+            iteration: i + 1,
+            maxDelta: Math.abs(avgReward),  // 用平均奖励作为delta的近似
+            avgValue: avgReward
+          });
+        }
+        setConvergenceHistory(convergenceData);
+      } else {
+        // DP算法：生成模拟收敛历史数据
+        const convergenceData = generateConvergenceHistory(
+          result.total_iterations,
+          config.theta,
+          result.final_values
+        );
+        setConvergenceHistory(convergenceData);
+      }
 
       setResult({
         expId: result.exp_id,
@@ -183,11 +227,20 @@ export function useExperiment(): UseExperimentReturn {
       });
 
       setProgress(1);
-      setCurrentIteration(result.total_iterations);
+      setCurrentIteration(isTDAlgorithm ? result.total_episodes : result.total_iterations);
 
-      message.success(
-        `算法执行完成! 迭代${result.total_iterations}次, 耗时${result.execution_time.toFixed(3)}秒`
-      );
+      // 根据算法类型显示不同的完成消息
+      if (isTDAlgorithm) {
+        const avgReward = result.avg_reward?.toFixed(2) || 'N/A';
+        const successRate = result.success_rate ? (result.success_rate * 100).toFixed(1) : 'N/A';
+        message.success(
+          `${config.algorithm.toUpperCase()} 训练完成! ${result.total_episodes}回合, 平均奖励${avgReward}, 成功率${successRate}%`
+        );
+      } else {
+        message.success(
+          `算法执行完成! 迭代${result.total_iterations}次, 耗时${result.execution_time.toFixed(3)}秒`
+        );
+      }
     } catch (err: any) {
       const errorMsg = err.response?.data?.detail || err.message || '算法执行失败';
       setError(errorMsg);
@@ -196,7 +249,7 @@ export function useExperiment(): UseExperimentReturn {
       setIsLoading(false);
       setRunning(false);
     }
-  }, [envId, setExpId, setValueFunction, setPolicy, setPolicyArrows, setResult, setRunning, setProgress, setCurrentIteration, setConvergenceHistory, clearHistory]);
+  }, [envId, setExpId, setValueFunction, setPolicy, setPolicyArrows, setResult, setRunning, setProgress, setCurrentIteration, setConvergenceHistory, clearHistory, setTDData]);
 
   // 异步运行算法
   const runAlgorithmAsync = useCallback(async (config: AlgorithmConfig): Promise<string | null> => {

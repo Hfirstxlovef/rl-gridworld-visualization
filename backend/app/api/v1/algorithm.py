@@ -14,12 +14,19 @@ import uuid
 import asyncio
 
 from ...services.environment.basic_grid import BasicGridEnv
+from ...services.environment.windy_grid import WindyGridEnv
+from ...services.environment.cliff_walking import CliffWalkingEnv
 from ...services.algorithm.dp_solver import (
     DPSolver,
     DPResult,
     DPAlgorithmType,
     IterationRecord,
     create_dp_solver
+)
+from ...services.algorithm.td_solver import (
+    TDSolver,
+    TDResult,
+    create_td_solver
 )
 from ...services.export.xml_exporter import (
     XMLExporter,
@@ -130,6 +137,8 @@ async def start_algorithm(request: AlgorithmStartRequest, background_tasks: Back
     created_at = datetime.now()
 
     # 根据算法类型创建求解器
+    is_td_algorithm = request.algorithm in [AlgorithmType.SARSA, AlgorithmType.Q_LEARNING]
+
     if request.algorithm in [AlgorithmType.POLICY_EVALUATION,
                              AlgorithmType.POLICY_ITERATION,
                              AlgorithmType.VALUE_ITERATION]:
@@ -139,13 +148,32 @@ async def start_algorithm(request: AlgorithmStartRequest, background_tasks: Back
             theta=request.theta,
             max_iterations=request.max_iterations
         )
+    elif is_td_algorithm:
+        solver = TDSolver(
+            env=env,
+            alpha=request.learning_rate,
+            gamma=request.gamma,
+            epsilon=request.epsilon
+        )
     else:
         raise HTTPException(
             status_code=501,
-            detail=f"Algorithm '{request.algorithm}' not yet implemented"
+            detail=f"Algorithm '{request.algorithm}' not supported"
         )
 
     # 存储实验信息
+    config_data = {
+        "gamma": request.gamma,
+        "theta": request.theta,
+        "max_iterations": request.max_iterations
+    }
+    if is_td_algorithm:
+        config_data.update({
+            "alpha": request.learning_rate,
+            "epsilon": request.epsilon,
+            "max_episodes": request.max_episodes
+        })
+
     experiments[exp_id] = {
         "exp_id": exp_id,
         "env_id": request.env_id,
@@ -158,11 +186,7 @@ async def start_algorithm(request: AlgorithmStartRequest, background_tasks: Back
         "execution_time": 0.0,
         "result": None,
         "created_at": created_at,
-        "config": {
-            "gamma": request.gamma,
-            "theta": request.theta,
-            "max_iterations": request.max_iterations
-        }
+        "config": config_data
     }
 
     # 在后台执行算法
@@ -186,7 +210,8 @@ async def run_algorithm(exp_id: str, algorithm: AlgorithmType):
         return
 
     exp_data = experiments[exp_id]
-    solver: DPSolver = exp_data["solver"]
+    solver = exp_data["solver"]
+    config = exp_data["config"]
 
     try:
         if algorithm == AlgorithmType.POLICY_EVALUATION:
@@ -207,6 +232,12 @@ async def run_algorithm(exp_id: str, algorithm: AlgorithmType):
             result = solver.policy_iteration()
         elif algorithm == AlgorithmType.VALUE_ITERATION:
             result = solver.value_iteration()
+        elif algorithm == AlgorithmType.SARSA:
+            max_episodes = config.get("max_episodes", 500)
+            result = solver.sarsa(max_episodes=max_episodes)
+        elif algorithm == AlgorithmType.Q_LEARNING:
+            max_episodes = config.get("max_episodes", 500)
+            result = solver.q_learning(max_episodes=max_episodes)
         else:
             raise ValueError(f"Unsupported algorithm: {algorithm}")
 
@@ -349,6 +380,8 @@ async def run_algorithm_sync(request: AlgorithmStartRequest):
     同步执行算法（等待完成后返回结果）
 
     适用于小规模实验，直接返回完整结果。
+    支持DP算法(policy_evaluation, policy_iteration, value_iteration)
+    和TD算法(sarsa, q_learning)。
     """
     # 验证环境存在
     env = _get_env_instance(request.env_id)
@@ -357,84 +390,164 @@ async def run_algorithm_sync(request: AlgorithmStartRequest):
     exp_id = f"exp_{uuid.uuid4().hex[:8]}"
     created_at = datetime.now()
 
-    # 创建求解器
-    solver = DPSolver(
-        env=env,
-        gamma=request.gamma,
-        theta=request.theta,
-        max_iterations=request.max_iterations
-    )
+    # 根据算法类型选择求解器
+    is_td_algorithm = request.algorithm in [AlgorithmType.SARSA, AlgorithmType.Q_LEARNING]
 
-    # 执行算法
-    if request.algorithm == AlgorithmType.POLICY_EVALUATION:
-        solver.policy_evaluation()
-        result = DPResult(
-            algorithm=DPAlgorithmType.POLICY_EVALUATION,
-            converged=True,
-            total_iterations=len(solver.history),
-            total_episodes=1,
-            final_values=solver.V.copy(),
-            final_policy=solver.policy.copy(),
-            history=solver.history,
-            episode_history=[],
-            execution_time=0.0
-        )
-    elif request.algorithm == AlgorithmType.POLICY_ITERATION:
-        result = solver.policy_iteration()
-    elif request.algorithm == AlgorithmType.VALUE_ITERATION:
-        result = solver.value_iteration()
-    else:
-        raise HTTPException(
-            status_code=501,
-            detail=f"Algorithm '{request.algorithm}' not yet implemented"
+    if is_td_algorithm:
+        # TD算法
+        solver = TDSolver(
+            env=env,
+            alpha=request.learning_rate,
+            gamma=request.gamma,
+            epsilon=request.epsilon
         )
 
-    # 存储实验
-    experiments[exp_id] = {
-        "exp_id": exp_id,
-        "env_id": request.env_id,
-        "algorithm": request.algorithm,
-        "solver": solver,
-        "status": "completed",
-        "progress": 1.0,
-        "current_iteration": result.total_iterations,
-        "converged": result.converged,
-        "execution_time": result.execution_time,
-        "result": result,
-        "created_at": created_at,
-        "config": {
-            "gamma": request.gamma,
-            "theta": request.theta,
-            "max_iterations": request.max_iterations
+        if request.algorithm == AlgorithmType.SARSA:
+            td_result = solver.sarsa(max_episodes=request.max_episodes)
+        else:  # Q_LEARNING
+            td_result = solver.q_learning(max_episodes=request.max_episodes)
+
+        # 获取网格尺寸
+        if hasattr(env, 'grid_size'):
+            height = width = env.grid_size
+        elif hasattr(env, 'height') and hasattr(env, 'width'):
+            height, width = env.height, env.width
+        else:
+            height = width = int(env.n_states ** 0.5)
+
+        # 构建值函数网格
+        value_grid = []
+        V = solver.get_value_function()
+        for row in range(height):
+            row_values = []
+            for col in range(width):
+                state = row * width + col
+                if state < len(V):
+                    row_values.append(float(V[state]))
+                else:
+                    row_values.append(0.0)
+            value_grid.append(row_values)
+
+        policy_arrows = solver.get_policy_arrows()
+        policy_arrows_str = {str(k): v for k, v in policy_arrows.items()}
+
+        # 存储实验
+        experiments[exp_id] = {
+            "exp_id": exp_id,
+            "env_id": request.env_id,
+            "algorithm": request.algorithm,
+            "solver": solver,
+            "status": "completed",
+            "progress": 1.0,
+            "current_iteration": td_result.total_episodes,
+            "converged": td_result.converged,
+            "execution_time": td_result.execution_time,
+            "result": td_result,
+            "created_at": created_at,
+            "config": {
+                "gamma": request.gamma,
+                "alpha": request.learning_rate,
+                "epsilon": request.epsilon,
+                "max_episodes": request.max_episodes
+            }
         }
-    }
 
-    # 构建值函数网格
-    value_grid = []
-    for row in range(env.grid_size):
-        row_values = []
-        for col in range(env.grid_size):
-            state = row * env.grid_size + col
-            row_values.append(float(result.final_values[state]))
-        value_grid.append(row_values)
+        return {
+            "exp_id": exp_id,
+            "algorithm": td_result.algorithm,
+            "converged": td_result.converged,
+            "total_iterations": td_result.total_steps,
+            "total_episodes": td_result.total_episodes,
+            "execution_time": td_result.execution_time,
+            "final_values": V.tolist(),
+            "final_policy": td_result.final_policy.tolist(),
+            "policy_arrows": policy_arrows_str,
+            "value_grid": value_grid,
+            "episode_rewards": td_result.episode_rewards,
+            "episode_lengths": td_result.episode_lengths,
+            "success_rate": td_result.success_rate,
+            "avg_reward": td_result.avg_reward
+        }
 
-    policy_arrows = solver.get_policy_arrows()
-    policy_arrows_str = {str(k): v for k, v in policy_arrows.items()}
+    else:
+        # DP算法
+        solver = DPSolver(
+            env=env,
+            gamma=request.gamma,
+            theta=request.theta,
+            max_iterations=request.max_iterations
+        )
 
-    return {
-        "exp_id": exp_id,
-        "algorithm": str(result.algorithm),
-        "converged": result.converged,
-        "total_iterations": result.total_iterations,
-        "total_episodes": result.total_episodes,
-        "execution_time": result.execution_time,
-        "final_values": result.final_values.tolist(),
-        "final_policy": result.final_policy.tolist(),
-        "policy_arrows": policy_arrows_str,
-        "value_grid": value_grid,
-        "value_text": solver.render_value_function(),
-        "policy_text": solver.render_policy()
-    }
+        # 执行算法
+        if request.algorithm == AlgorithmType.POLICY_EVALUATION:
+            solver.policy_evaluation()
+            result = DPResult(
+                algorithm=DPAlgorithmType.POLICY_EVALUATION,
+                converged=True,
+                total_iterations=len(solver.history),
+                total_episodes=1,
+                final_values=solver.V.copy(),
+                final_policy=solver.policy.copy(),
+                history=solver.history,
+                episode_history=[],
+                execution_time=0.0
+            )
+        elif request.algorithm == AlgorithmType.POLICY_ITERATION:
+            result = solver.policy_iteration()
+        elif request.algorithm == AlgorithmType.VALUE_ITERATION:
+            result = solver.value_iteration()
+        else:
+            raise HTTPException(
+                status_code=501,
+                detail=f"Algorithm '{request.algorithm}' not supported"
+            )
+
+        # 存储实验
+        experiments[exp_id] = {
+            "exp_id": exp_id,
+            "env_id": request.env_id,
+            "algorithm": request.algorithm,
+            "solver": solver,
+            "status": "completed",
+            "progress": 1.0,
+            "current_iteration": result.total_iterations,
+            "converged": result.converged,
+            "execution_time": result.execution_time,
+            "result": result,
+            "created_at": created_at,
+            "config": {
+                "gamma": request.gamma,
+                "theta": request.theta,
+                "max_iterations": request.max_iterations
+            }
+        }
+
+        # 构建值函数网格
+        value_grid = []
+        for row in range(env.grid_size):
+            row_values = []
+            for col in range(env.grid_size):
+                state = row * env.grid_size + col
+                row_values.append(float(result.final_values[state]))
+            value_grid.append(row_values)
+
+        policy_arrows = solver.get_policy_arrows()
+        policy_arrows_str = {str(k): v for k, v in policy_arrows.items()}
+
+        return {
+            "exp_id": exp_id,
+            "algorithm": str(result.algorithm),
+            "converged": result.converged,
+            "total_iterations": result.total_iterations,
+            "total_episodes": result.total_episodes,
+            "execution_time": result.execution_time,
+            "final_values": result.final_values.tolist(),
+            "final_policy": result.final_policy.tolist(),
+            "policy_arrows": policy_arrows_str,
+            "value_grid": value_grid,
+            "value_text": solver.render_value_function(),
+            "policy_text": solver.render_policy()
+        }
 
 
 @router.get("", response_model=List[AlgorithmStatusResponse])
