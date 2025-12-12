@@ -189,7 +189,8 @@ npx tsc --noEmit
 MIT License
 
 系统页面截图：
-![img](file:////Users/zhanglangeba/Library/Containers/com.kingsoft.wpsoffice.mac/Data/tmp/wps-zhanglangeba/ksohtml//wps2.jpg)
+<img width="936" height="512" alt="image" src="https://github.com/user-attachments/assets/cd42c5d4-d6cd-4d0e-81f4-bdae69a9232e" />
+
 
 由一个3D棋盘飞行在宇宙中组成，左侧可以进行环境配置和算法配置，右侧可以查看训练进度，训练动画，实验统计，实验结果等。
 ![img](file:////Users/zhanglangeba/Library/Containers/com.kingsoft.wpsoffice.mac/Data/tmp/wps-zhanglangeba/ksohtml//wps3.jpg)
