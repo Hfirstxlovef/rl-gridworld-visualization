@@ -189,25 +189,23 @@ npx tsc --noEmit
 MIT License
 
 系统页面截图：
-<img width="936" height="512" alt="image" src="https://github.com/user-attachments/assets/cd42c5d4-d6cd-4d0e-81f4-bdae69a9232e" />
-
+<img width="3024" height="1654" alt="图片1" src="https://github.com/user-attachments/assets/19b173d1-0f55-4240-a2a8-9bd30d467a6f" />
 
 由一个3D棋盘飞行在宇宙中组成，左侧可以进行环境配置和算法配置，右侧可以查看训练进度，训练动画，实验统计，实验结果等。
-![img](file:////Users/zhanglangeba/Library/Containers/com.kingsoft.wpsoffice.mac/Data/tmp/wps-zhanglangeba/ksohtml//wps3.jpg)
+<img width="3024" height="1654" alt="图片2" src="https://github.com/user-attachments/assets/60c55b20-5973-4d95-b8b1-52b94eb0b91b" />
 
 训练结果
-![img](file:////Users/zhanglangeba/Library/Containers/com.kingsoft.wpsoffice.mac/Data/tmp/wps-zhanglangeba/ksohtml//wps4.jpg)
+<img width="3024" height="1654" alt="图片3" src="https://github.com/user-attachments/assets/b0d13825-9b9f-4552-b77e-c7192f154446" />
 
 收敛曲线
 
-![img](file:////Users/zhanglangeba/Library/Containers/com.kingsoft.wpsoffice.mac/Data/tmp/wps-zhanglangeba/ksohtml//wps5.jpg) 
+<img width="3024" height="1654" alt="图片4" src="https://github.com/user-attachments/assets/6853cd76-6c66-4fc0-b8a2-f3c692a89712" />
 
 多网格运行效果
 
-![img](file:////Users/zhanglangeba/Library/Containers/com.kingsoft.wpsoffice.mac/Data/tmp/wps-zhanglangeba/ksohtml//wps6.jpg) 
+<img width="3024" height="1654" alt="图片5" src="https://github.com/user-attachments/assets/70d843b3-113d-42cf-a3c9-93540f90fb43" />
 
 有风网格世界 (Windy Gridworld)运行效果
-
-![img](file:////Users/zhanglangeba/Library/Containers/com.kingsoft.wpsoffice.mac/Data/tmp/wps-zhanglangeba/ksohtml//wps7.jpg) 
+<img width="3024" height="1654" alt="图片6" src="https://github.com/user-attachments/assets/4caac4a4-72ec-4e10-b6d2-d291781e8b46" />
 
 悬崖行走 (Cliff Walking)运行效果
