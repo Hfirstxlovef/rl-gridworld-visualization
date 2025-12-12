@@ -369,7 +369,7 @@ const TeachingMode: React.FC<TeachingModeProps> = ({
       <Collapse ghost size="small">
         <Panel header="算法原理详解" key="1">
           {['policy_iteration', 'value_iteration'].includes(algorithm) ? (
-            <div style={{ fontSize: 12, color: '#888' }}>
+            <div style={{ fontSize: 12, color: '#000' }}>
               <p><strong>动态规划 (DP) 特点:</strong></p>
               <ul>
                 <li>需要完整的环境模型 (状态转移概率)</li>
@@ -379,7 +379,7 @@ const TeachingMode: React.FC<TeachingModeProps> = ({
               </ul>
             </div>
           ) : (
-            <div style={{ fontSize: 12, color: '#888' }}>
+            <div style={{ fontSize: 12, color: '#000' }}>
               <p><strong>时序差分 (TD) 特点:</strong></p>
               <ul>
                 <li>无需环境模型，从经验中学习</li>

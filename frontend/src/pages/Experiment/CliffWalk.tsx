@@ -17,7 +17,7 @@ import {
   InputNumber,
   Form,
   Divider,
-  message,
+  App,
   Spin
 } from 'antd';
 import {
@@ -31,6 +31,7 @@ import { createEnvironment, runAlgorithmSync } from '../../services/api';
 const { Title, Paragraph, Text } = Typography;
 
 const CliffWalk: React.FC = () => {
+  const { message } = App.useApp();
   // 算法参数
   const [alpha, setAlpha] = useState(0.5);
   const [epsilon, setEpsilon] = useState(0.1);
@@ -117,12 +118,12 @@ const CliffWalk: React.FC = () => {
 
   return (
     <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
-      <Title level={2}>
+      <Title level={2} style={{ color: '#000' }}>
         <ExperimentOutlined /> 悬崖行走 (Cliff Walking)
       </Title>
 
-      <Paragraph>
-        <Text strong>练习6.9/6.10:</Text> 在悬崖行走环境中对比SARSA和Q-Learning算法。
+      <Paragraph style={{ color: '#000' }}>
+        <Text strong style={{ color: '#000' }}>练习6.9/6.10:</Text> 在悬崖行走环境中对比SARSA和Q-Learning算法。
         智能体从左下角出发，需要到达右下角目标，底部边缘是悬崖(掉落-100奖励并重置)。
       </Paragraph>
 
@@ -203,7 +204,7 @@ const CliffWalk: React.FC = () => {
 
           {/* 环境说明 */}
           <Card title="环境说明" size="small" style={{ marginTop: 16 }}>
-            <div style={{ fontSize: 12, color: '#888' }}>
+            <div style={{ fontSize: 12, color: '#fff' }}>
               <p><strong>网格:</strong> 4×12</p>
               <p><strong>起点:</strong> 左下角 (3,0)</p>
               <p><strong>终点:</strong> 右下角 (3,11)</p>

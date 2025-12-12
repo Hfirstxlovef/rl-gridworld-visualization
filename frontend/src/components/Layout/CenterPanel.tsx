@@ -12,7 +12,9 @@ const CenterPanel: React.FC = () => {
       <Suspense
         fallback={
           <div className="loading-container">
-            <Spin size="large" tip="加载3D场景中..." />
+            <Spin size="large" tip="加载3D场景中...">
+              <div style={{ minHeight: 200, minWidth: 200 }} />
+            </Spin>
           </div>
         }
       >

@@ -77,7 +77,7 @@ const LearningCurve: React.FC<LearningCurveProps> = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: '#888'
+        color: '#000'
       }}>
         暂无学习数据
       </div>
@@ -149,7 +149,7 @@ const LearningCurve: React.FC<LearningCurveProps> = ({
         display: 'flex',
         justifyContent: 'space-between',
         fontSize: 10,
-        color: '#888',
+        color: '#000',
         marginTop: 8,
         padding: '4px 8px',
         backgroundColor: '#1a1a2e',

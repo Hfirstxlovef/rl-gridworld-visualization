@@ -15,7 +15,8 @@ import {
   TrainingStats,
   VisualizationSettings,
   AlgorithmType,
-  Action
+  Action,
+  IterationSnapshot
 } from '../types';
 
 // 实验Store状态接口
@@ -60,6 +61,12 @@ interface ExperimentStore {
   // 可视化设置
   visualization: VisualizationSettings;
 
+  // 播放控制状态
+  iterationSnapshots: IterationSnapshot[];
+  playbackIndex: number;
+  isPlaying: boolean;
+  playbackSpeed: number;  // ms/帧
+
   // Actions - 环境
   setEnvId: (id: string) => void;
   setEnvConfig: (config: Partial<EnvironmentConfig>) => void;
@@ -95,6 +102,18 @@ interface ExperimentStore {
 
   // Actions - 可视化
   setVisualization: (settings: Partial<VisualizationSettings>) => void;
+
+  // Actions - 播放控制
+  setIterationSnapshots: (snapshots: IterationSnapshot[]) => void;
+  setPlaybackIndex: (index: number) => void;
+  setIsPlaying: (playing: boolean) => void;
+  setPlaybackSpeed: (speed: number) => void;
+  playAnimation: () => void;
+  pauseAnimation: () => void;
+  stepForward: () => void;
+  stepBackward: () => void;
+  seekTo: (index: number) => void;
+  applySnapshot: (index: number) => void;
 
   // Actions - 重置
   reset: () => void;
@@ -207,6 +226,12 @@ export const useExperimentStore = create<ExperimentStore>()(
 
       stats: defaultStats,
       visualization: defaultVisualization,
+
+      // 播放控制初始状态
+      iterationSnapshots: [],
+      playbackIndex: 0,
+      isPlaying: false,
+      playbackSpeed: 250,  // 默认250ms/帧（细粒度快照，快些播放）
 
       // 环境Actions
       setEnvId: (id) => set({ envId: id }),
@@ -360,6 +385,84 @@ export const useExperimentStore = create<ExperimentStore>()(
         visualization: { ...state.visualization, ...settings }
       })),
 
+      // 播放控制Actions
+      setIterationSnapshots: (snapshots) => set({ iterationSnapshots: snapshots, playbackIndex: 0 }),
+
+      setPlaybackIndex: (index) => set({ playbackIndex: index }),
+
+      setIsPlaying: (playing) => set({ isPlaying: playing }),
+
+      setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
+
+      playAnimation: () => set({ isPlaying: true }),
+
+      pauseAnimation: () => set({ isPlaying: false }),
+
+      stepForward: () => {
+        const { playbackIndex, iterationSnapshots } = get();
+        if (playbackIndex < iterationSnapshots.length - 1) {
+          const newIndex = playbackIndex + 1;
+          get().applySnapshot(newIndex);
+          set({ playbackIndex: newIndex });
+        }
+      },
+
+      stepBackward: () => {
+        const { playbackIndex } = get();
+        if (playbackIndex > 0) {
+          const newIndex = playbackIndex - 1;
+          get().applySnapshot(newIndex);
+          set({ playbackIndex: newIndex });
+        }
+      },
+
+      seekTo: (index) => {
+        const { iterationSnapshots } = get();
+        if (index >= 0 && index < iterationSnapshots.length) {
+          get().applySnapshot(index);
+          set({ playbackIndex: index });
+        }
+      },
+
+      applySnapshot: (index) => {
+        const { iterationSnapshots, gridSize, grid } = get();
+        if (index < 0 || index >= iterationSnapshots.length) return;
+
+        const snapshot = iterationSnapshots[index];
+
+        // 更新值函数
+        const newGrid = grid.map((row, rowIdx) =>
+          row.map((cell, colIdx) => {
+            const state = rowIdx * gridSize + colIdx;
+            const value = snapshot.values[state] || 0;
+            const arrows = snapshot.policyArrows[String(state)] || [];
+            const bestActions = arrows.map(arrow => {
+              switch (arrow) {
+                case 'UP': return Action.UP;
+                case 'DOWN': return Action.DOWN;
+                case 'LEFT': return Action.LEFT;
+                case 'RIGHT': return Action.RIGHT;
+                default: return Action.UP;
+              }
+            });
+            return { ...cell, value, bestActions };
+          })
+        );
+
+        // 转换策略箭头格式
+        const policyArrows: Record<number, string[]> = {};
+        Object.entries(snapshot.policyArrows).forEach(([key, value]) => {
+          policyArrows[parseInt(key)] = value;
+        });
+
+        set({
+          valueFunction: snapshot.values,
+          policyArrows,
+          grid: newGrid,
+          currentIteration: snapshot.iteration
+        });
+      },
+
       // 重置Actions
       reset: () => {
         const grid = createInitialGrid(4);
@@ -388,7 +491,12 @@ export const useExperimentStore = create<ExperimentStore>()(
           avgReward: 0,
           agentState: null,
           agentPosition: null,
-          stats: defaultStats
+          stats: defaultStats,
+          // 播放控制重置
+          iterationSnapshots: [],
+          playbackIndex: 0,
+          isPlaying: false,
+          playbackSpeed: 250
         });
       },
 
@@ -404,7 +512,11 @@ export const useExperimentStore = create<ExperimentStore>()(
         episodeRewards: [],
         episodeLengths: [],
         successRate: 0,
-        avgReward: 0
+        avgReward: 0,
+        // 播放控制重置
+        iterationSnapshots: [],
+        playbackIndex: 0,
+        isPlaying: false
       })
     }),
     { name: 'experiment-store' }

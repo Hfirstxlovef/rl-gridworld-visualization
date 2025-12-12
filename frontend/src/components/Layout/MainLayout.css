@@ -88,9 +88,23 @@
   padding: 12px;
 }
 
+/* 覆盖 Ant Design 表单标签默认灰色 */
+.left-panel .ant-form-item-label > label {
+  color: #000 !important;
+}
+
+/* 覆盖 Ant Design 按钮默认文字颜色 */
+.left-panel .ant-btn-default {
+  color: #000 !important;
+}
+
+.left-panel .ant-btn-default:disabled {
+  color: rgba(0, 0, 0, 0.5) !important;
+}
+
 .speed-control {
   font-size: 12px;
-  color: #666;
+  color: #000;
 }
 
 /* 中间面板 - 3D场景区域 */
@@ -152,11 +166,37 @@
 
 .right-panel .ant-statistic-title {
   font-size: 12px;
-  color: #666;
+  color: #000 !important;
+}
+
+/* 覆盖 Progress 组件文字默认灰色 */
+.right-panel .ant-progress-text {
+  color: #000 !important;
 }
 
 .right-panel .ant-statistic-content {
   font-size: 16px;
+  color: #000 !important;
+}
+
+/* 覆盖 Statistic 组件前缀图标颜色 */
+.right-panel .ant-statistic-content-prefix {
+  color: #000 !important;
+}
+
+/* 覆盖 Statistic 组件值颜色 */
+.right-panel .ant-statistic-content-value {
+  color: #000 !important;
+}
+
+/* 覆盖 Ant Design Empty 组件描述文字默认灰色 */
+.ant-empty-description {
+  color: #000 !important;
+}
+
+/* 覆盖 Ant Design Tabs 标签默认灰色 */
+.ant-tabs-tab {
+  color: #000 !important;
 }
 
 /* Q值表样式 */

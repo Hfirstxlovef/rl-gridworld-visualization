@@ -9,7 +9,7 @@ import {
 } from '../types';
 
 // API 基础配置
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:16210';
 
 // 创建 axios 实例
 const apiClient: AxiosInstance = axios.create({
@@ -155,6 +155,14 @@ export interface AlgorithmStatusResponse {
   execution_time: number;
 }
 
+// 迭代快照（用于动画回放）
+export interface IterationSnapshotResponse {
+  iteration: number;
+  values: number[];
+  policy_arrows: Record<string, string[]>;
+  max_delta: number;
+}
+
 export interface AlgorithmResultResponse {
   exp_id: string;
   algorithm: string;
@@ -173,6 +181,8 @@ export interface AlgorithmResultResponse {
   episode_lengths?: number[];
   success_rate?: number;
   avg_reward?: number;
+  // 迭代快照（用于动画回放）
+  iteration_snapshots?: IterationSnapshotResponse[];
 }
 
 export interface IterationDataResponse {

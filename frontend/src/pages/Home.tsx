@@ -35,13 +35,13 @@ const Home: React.FC = () => {
   return (
     <div style={{ padding: '24px', maxWidth: 1200, margin: '0 auto' }}>
       <div style={{ textAlign: 'center', marginBottom: 48 }}>
-        <Title level={1}>强化学习迷宫求解可视化系统</Title>
-        <Paragraph style={{ fontSize: 16, color: '#666' }}>
+        <Title level={1} style={{ color: '#000' }}>强化学习迷宫求解可视化系统</Title>
+        <Paragraph style={{ fontSize: 16, color: '#000' }}>
           通过3D可视化交互，直观理解Q-Learning、SARSA等强化学习算法的工作原理
         </Paragraph>
       </div>
 
-      <Title level={3} style={{ marginBottom: 24 }}>选择实验场景</Title>
+      <Title level={3} style={{ marginBottom: 24, color: '#000' }}>选择实验场景</Title>
 
       <Row gutter={[24, 24]}>
         {experiments.map((exp) => (
@@ -54,10 +54,10 @@ const Home: React.FC = () => {
               <div style={{ textAlign: 'center', marginBottom: 16 }}>
                 {exp.icon}
               </div>
-              <Title level={4} style={{ textAlign: 'center' }}>
+              <Title level={4} style={{ textAlign: 'center', color: '#000' }}>
                 {exp.title}
               </Title>
-              <Paragraph style={{ textAlign: 'center', color: '#666' }}>
+              <Paragraph style={{ textAlign: 'center', color: '#000' }}>
                 {exp.description}
               </Paragraph>
               <div style={{ textAlign: 'center' }}>
@@ -69,7 +69,7 @@ const Home: React.FC = () => {
       </Row>
 
       <Card style={{ marginTop: 48 }}>
-        <Title level={4}>关于本系统</Title>
+        <Title level={4} style={{ color: '#fff' }}>关于本系统</Title>
         <Paragraph>
           本系统是机器学习课程实验四的可视化演示平台，主要功能包括：
         </Paragraph>

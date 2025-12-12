@@ -155,3 +155,19 @@ export interface VisualizationSettings {
   cameraMode: 'orbit' | 'follow' | 'topdown';
   colorScheme: 'blue-red' | 'green-red' | 'rainbow';
 }
+
+// 迭代快照（用于动画回放）
+export interface IterationSnapshot {
+  iteration: number;
+  values: number[];
+  policyArrows: Record<string, string[]>;
+  maxDelta: number;
+}
+
+// 播放控制状态
+export interface PlaybackState {
+  snapshots: IterationSnapshot[];
+  currentIndex: number;
+  isPlaying: boolean;
+  speed: number;  // 播放速度 (ms/帧)
+}

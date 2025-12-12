@@ -5,7 +5,7 @@
  */
 
 import { useCallback, useState } from 'react';
-import { message } from 'antd';
+import { App } from 'antd';
 import { useExperimentStore } from '../store';
 import {
   createEnvironment,
@@ -40,6 +40,7 @@ export interface UseExperimentReturn {
 }
 
 export function useExperiment(): UseExperimentReturn {
+  const { message } = App.useApp();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,7 +62,9 @@ export function useExperiment(): UseExperimentReturn {
     setAgentState,
     setConvergenceHistory,
     clearHistory,
-    setTDData
+    setTDData,
+    setIterationSnapshots,
+    playAnimation
   } = useExperimentStore();
 
   // 初始化环境
@@ -211,6 +214,19 @@ export function useExperiment(): UseExperimentReturn {
           result.final_values
         );
         setConvergenceHistory(convergenceData);
+
+        // 保存迭代快照用于动画回放
+        if (result.iteration_snapshots && result.iteration_snapshots.length > 0) {
+          const snapshots = result.iteration_snapshots.map(snap => ({
+            iteration: snap.iteration,
+            values: snap.values,
+            policyArrows: snap.policy_arrows,
+            maxDelta: snap.max_delta
+          }));
+          setIterationSnapshots(snapshots);
+          // 自动开始播放动画
+          setTimeout(() => playAnimation(), 500);
+        }
       }
 
       setResult({
@@ -249,7 +265,7 @@ export function useExperiment(): UseExperimentReturn {
       setIsLoading(false);
       setRunning(false);
     }
-  }, [envId, setExpId, setValueFunction, setPolicy, setPolicyArrows, setResult, setRunning, setProgress, setCurrentIteration, setConvergenceHistory, clearHistory, setTDData]);
+  }, [envId, setExpId, setValueFunction, setPolicy, setPolicyArrows, setResult, setRunning, setProgress, setCurrentIteration, setConvergenceHistory, clearHistory, setTDData, setIterationSnapshots, playAnimation]);
 
   // 异步运行算法
   const runAlgorithmAsync = useCallback(async (config: AlgorithmConfig): Promise<string | null> => {

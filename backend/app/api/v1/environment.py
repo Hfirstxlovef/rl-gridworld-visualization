@@ -299,8 +299,8 @@ async def reset_environment(env_id: str, start_state: Optional[int] = None):
     return {
         "status": "reset",
         "env_id": env_id,
-        "initial_state": initial_state,
-        "position": list(position)
+        "initial_state": int(initial_state),
+        "position": [int(x) for x in position]
     }
 
 
@@ -323,9 +323,9 @@ async def step_environment(env_id: str, action: int):
 
     return {
         "env_id": env_id,
-        "next_state": result.next_state,
-        "reward": result.reward,
-        "done": result.done,
+        "next_state": int(result.next_state),
+        "reward": float(result.reward),
+        "done": bool(result.done),
         "info": result.info
     }
 

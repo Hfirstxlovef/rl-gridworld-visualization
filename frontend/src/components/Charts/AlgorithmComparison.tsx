@@ -127,7 +127,7 @@ const AlgorithmComparison: React.FC<AlgorithmComparisonProps> = ({
   if (!sarsaResult && !qLearningResult) {
     return (
       <Card title={title} size="small">
-        <div style={{ textAlign: 'center', color: '#888', padding: 20 }}>
+        <div style={{ textAlign: 'center', color: '#fff', padding: 20 }}>
           运行SARSA和Q-Learning算法后显示对比结果
         </div>
       </Card>
@@ -160,7 +160,7 @@ const AlgorithmComparison: React.FC<AlgorithmComparisonProps> = ({
                   suffix="平均奖励"
                   valueStyle={{ fontSize: 18, color: COLORS.sarsa }}
                 />
-                <div style={{ fontSize: 11, color: '#888', marginTop: 4 }}>
+                <div style={{ fontSize: 11, color: '#000', marginTop: 4 }}>
                   成功率: {(sarsaResult.successRate * 100).toFixed(1)}%
                   <SafetyOutlined style={{ marginLeft: 4 }} />
                 </div>
@@ -189,7 +189,7 @@ const AlgorithmComparison: React.FC<AlgorithmComparisonProps> = ({
                   suffix="平均奖励"
                   valueStyle={{ fontSize: 18, color: COLORS.q_learning }}
                 />
-                <div style={{ fontSize: 11, color: '#888', marginTop: 4 }}>
+                <div style={{ fontSize: 11, color: '#000', marginTop: 4 }}>
                   成功率: {(qLearningResult.successRate * 100).toFixed(1)}%
                   <SafetyOutlined style={{ marginLeft: 4 }} />
                 </div>
@@ -301,7 +301,7 @@ const AlgorithmComparison: React.FC<AlgorithmComparisonProps> = ({
           backgroundColor: '#1a1a2e',
           borderRadius: 4,
           fontSize: 11,
-          color: '#888'
+          color: '#000'
         }}>
           <strong style={{ color: '#1890ff' }}>算法特性对比:</strong>
           <ul style={{ margin: '8px 0 0 0', paddingLeft: 16 }}>

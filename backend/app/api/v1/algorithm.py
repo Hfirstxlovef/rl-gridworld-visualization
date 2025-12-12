@@ -13,7 +13,7 @@ from datetime import datetime
 import uuid
 import asyncio
 
-from ...services.environment.basic_grid import BasicGridEnv
+from ...services.environment.basic_grid import BasicGridEnv, Action
 from ...services.environment.windy_grid import WindyGridEnv
 from ...services.environment.cliff_walking import CliffWalkingEnv
 from ...services.algorithm.dp_solver import (
@@ -534,6 +534,25 @@ async def run_algorithm_sync(request: AlgorithmStartRequest):
         policy_arrows = solver.get_policy_arrows()
         policy_arrows_str = {str(k): v for k, v in policy_arrows.items()}
 
+        # 构建迭代快照（用于动画回放）
+        iteration_snapshots = []
+        for ep in result.episode_history:
+            # 为每个快照生成策略箭头
+            snapshot_arrows = {}
+            for state in range(env.n_states):
+                if state not in env.terminal_states:
+                    policy_row = ep.policy[state]
+                    best_actions = [i for i, p in enumerate(policy_row) if p > 0]
+                    arrows = [env.ACTION_NAMES[Action(a)] for a in best_actions]
+                    snapshot_arrows[str(state)] = arrows
+
+            iteration_snapshots.append({
+                "iteration": ep.episode,
+                "values": ep.value_function,
+                "policy_arrows": snapshot_arrows,
+                "max_delta": ep.max_delta
+            })
+
         return {
             "exp_id": exp_id,
             "algorithm": str(result.algorithm),
@@ -546,7 +565,8 @@ async def run_algorithm_sync(request: AlgorithmStartRequest):
             "policy_arrows": policy_arrows_str,
             "value_grid": value_grid,
             "value_text": solver.render_value_function(),
-            "policy_text": solver.render_policy()
+            "policy_text": solver.render_policy(),
+            "iteration_snapshots": iteration_snapshots
         }
 
 

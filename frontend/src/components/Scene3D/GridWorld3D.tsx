@@ -7,7 +7,7 @@
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { Text } from '@react-three/drei';
+import { Html } from '@react-three/drei';
 import { useExperimentStore } from '../../store';
 import { GridCell, Action } from '../../types';
 
@@ -109,29 +109,19 @@ const GridCellMesh: React.FC<GridCellMeshProps> = ({
 
       {/* 值函数文本 */}
       {showHeatmap && cell.type !== 'terminal' && (
-        <Text
-          position={[0, 0.2 + heightOffset, 0]}
-          rotation={[-Math.PI / 2, 0, 0]}
-          fontSize={cellSize * 0.2}
-          color="#ffffff"
-          anchorX="center"
-          anchorY="middle"
-        >
-          {cell.value.toFixed(1)}
-        </Text>
+        <Html position={[0, 0.2 + heightOffset, 0]} center>
+          <div style={{ color: '#fff', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+            {cell.value.toFixed(1)}
+          </div>
+        </Html>
       )}
 
       {/* 状态编号 */}
-      <Text
-        position={[-cellSize * 0.35, 0.15 + heightOffset, -cellSize * 0.35]}
-        rotation={[-Math.PI / 2, 0, 0]}
-        fontSize={cellSize * 0.12}
-        color="#888888"
-        anchorX="left"
-        anchorY="top"
-      >
-        {cell.state}
-      </Text>
+      <Html position={[-cellSize * 0.35, 0.15 + heightOffset, -cellSize * 0.35]} center>
+        <div style={{ color: '#888', fontSize: '10px', whiteSpace: 'nowrap' }}>
+          {cell.state}
+        </div>
+      </Html>
 
       {/* 策略箭头 */}
       {showArrows && cell.type !== 'terminal' && cell.bestActions.length > 0 && (
@@ -155,16 +145,11 @@ const GridCellMesh: React.FC<GridCellMeshProps> = ({
 
       {/* 终止状态标记 */}
       {cell.type === 'terminal' && (
-        <Text
-          position={[0, 0.3, 0]}
-          rotation={[-Math.PI / 2, 0, 0]}
-          fontSize={cellSize * 0.3}
-          color="#ffffff"
-          anchorX="center"
-          anchorY="middle"
-        >
-          T
-        </Text>
+        <Html position={[0, 0.3, 0]} center>
+          <div style={{ color: '#fff', fontSize: '20px', fontWeight: 'bold' }}>
+            T
+          </div>
+        </Html>
       )}
     </group>
   );

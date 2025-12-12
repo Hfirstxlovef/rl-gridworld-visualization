@@ -36,7 +36,7 @@ class WebSocketService {
   private messageHandlers: Map<string, Set<MessageHandler>> = new Map();
   private url: string;
 
-  constructor(url: string = 'ws://localhost:8000/ws/training') {
+  constructor(url: string = 'ws://localhost:16210/ws/training') {
     this.url = url;
   }
 

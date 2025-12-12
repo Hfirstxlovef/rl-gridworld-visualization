@@ -67,14 +67,14 @@ npm install
 ```bash
 # 终端1: 启动后端
 cd backend
-uvicorn app.main:app --reload --port 8000
+uvicorn main:app --reload --port 16210
 
 # 终端2: 启动前端
 cd frontend
 npm run dev
 ```
 
-访问 http://localhost:5173 查看应用。
+访问 http://localhost:16000 查看应用。
 
 ## 项目结构
 
@@ -116,7 +116,7 @@ npm run dev
 
 ## API文档
 
-启动后端后访问: http://localhost:8000/docs
+启动后端后访问: http://localhost:16210/docs
 
 ### 主要接口
 
@@ -187,3 +187,26 @@ npx tsc --noEmit
 ## 许可证
 
 MIT License
+
+系统页面截图：
+![img](file:////Users/zhanglangeba/Library/Containers/com.kingsoft.wpsoffice.mac/Data/tmp/wps-zhanglangeba/ksohtml//wps2.jpg)
+
+由一个3D棋盘飞行在宇宙中组成，左侧可以进行环境配置和算法配置，右侧可以查看训练进度，训练动画，实验统计，实验结果等。
+![img](file:////Users/zhanglangeba/Library/Containers/com.kingsoft.wpsoffice.mac/Data/tmp/wps-zhanglangeba/ksohtml//wps3.jpg)
+
+训练结果
+![img](file:////Users/zhanglangeba/Library/Containers/com.kingsoft.wpsoffice.mac/Data/tmp/wps-zhanglangeba/ksohtml//wps4.jpg)
+
+收敛曲线
+
+![img](file:////Users/zhanglangeba/Library/Containers/com.kingsoft.wpsoffice.mac/Data/tmp/wps-zhanglangeba/ksohtml//wps5.jpg) 
+
+多网格运行效果
+
+![img](file:////Users/zhanglangeba/Library/Containers/com.kingsoft.wpsoffice.mac/Data/tmp/wps-zhanglangeba/ksohtml//wps6.jpg) 
+
+有风网格世界 (Windy Gridworld)运行效果
+
+![img](file:////Users/zhanglangeba/Library/Containers/com.kingsoft.wpsoffice.mac/Data/tmp/wps-zhanglangeba/ksohtml//wps7.jpg) 
+
+悬崖行走 (Cliff Walking)运行效果

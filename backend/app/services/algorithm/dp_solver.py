@@ -318,6 +318,19 @@ class DPSolver:
         start_time = time.time()
         iteration = 0
 
+        # 保存初始快照（全零值函数）
+        initial_policy = np.ones((self.env.n_states, self.env.n_actions)) / self.env.n_actions
+        for ts in self.env.terminal_states:
+            initial_policy[ts] = 0
+        self.episode_history.append(EpisodeRecord(
+            episode=0,
+            policy_stable=False,
+            max_delta=float('inf'),
+            value_function=self.V.tolist(),
+            policy=initial_policy.tolist(),
+            iterations=[]
+        ))
+
         while iteration < self.max_iterations:
             delta = 0
 
@@ -356,6 +369,26 @@ class DPSolver:
                 if self.callback:
                     self.callback(record)
 
+                # 每个状态更新后保存快照（细粒度动画）
+                temp_policy = np.zeros((self.env.n_states, self.env.n_actions))
+                for s in range(self.env.n_states):
+                    if s not in self.env.terminal_states:
+                        action_vals = np.zeros(self.env.n_actions)
+                        for a in Action:
+                            for prob, ns, r, _ in self.env.P[s][a]:
+                                action_vals[a] += prob * (r + self.gamma * self.V[ns])
+                        best_acts = np.where(action_vals == action_vals.max())[0]
+                        temp_policy[s, best_acts] = 1.0 / len(best_acts)
+
+                self.episode_history.append(EpisodeRecord(
+                    episode=len(self.episode_history),
+                    policy_stable=False,
+                    max_delta=state_delta,
+                    value_function=self.V.tolist(),
+                    policy=temp_policy.tolist(),
+                    iterations=[]
+                ))
+
             iteration += 1
 
             if delta < self.theta:
@@ -369,12 +402,12 @@ class DPSolver:
         return DPResult(
             algorithm=DPAlgorithmType.VALUE_ITERATION,
             converged=iteration < self.max_iterations,
-            total_iterations=iteration * self.env.n_states,
+            total_iterations=iteration,  # 迭代轮次数（与max_iterations语义一致）
             total_episodes=iteration,
             final_values=self.V.copy(),
             final_policy=self.policy.copy(),
             history=self.history,
-            episode_history=[],
+            episode_history=self.episode_history,
             execution_time=execution_time
         )
 

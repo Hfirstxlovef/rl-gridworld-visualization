@@ -17,7 +17,7 @@ import {
   InputNumber,
   Form,
   Divider,
-  message,
+  App,
   Spin,
   Progress,
   Tag,
@@ -44,6 +44,7 @@ interface ExperimentResult {
 }
 
 const WindyGrid: React.FC = () => {
+  const { message } = App.useApp();
   // 算法参数
   const [alpha, setAlpha] = useState(0.5);
   const [epsilon, setEpsilon] = useState(0.1);
@@ -108,12 +109,12 @@ const WindyGrid: React.FC = () => {
 
   return (
     <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
-      <Title level={2}>
+      <Title level={2} style={{ color: '#000' }}>
         <ExperimentOutlined /> 有风网格世界 (Windy Gridworld)
       </Title>
 
-      <Paragraph>
-        <Text strong>练习6.6/6.7:</Text> 在有风网格世界中使用SARSA算法学习最优策略。
+      <Paragraph style={{ color: '#000' }}>
+        <Text strong style={{ color: '#000' }}>练习6.6/6.7:</Text> 在有风网格世界中使用SARSA算法学习最优策略。
         部分列存在向上的风力，会在每步动作后将智能体向上推动。
       </Paragraph>
 
@@ -194,7 +195,7 @@ const WindyGrid: React.FC = () => {
 
           {/* 环境说明 */}
           <Card title="环境说明" size="small" style={{ marginTop: 16 }}>
-            <div style={{ fontSize: 12, color: '#888' }}>
+            <div style={{ fontSize: 12, color: '#fff' }}>
               <p><strong>网格:</strong> 7×10</p>
               <p><strong>起点:</strong> (3, 0)</p>
               <p><strong>终点:</strong> (3, 7)</p>
@@ -307,7 +308,7 @@ const WindyGrid: React.FC = () => {
                 backgroundColor: '#1a1a2e',
                 borderRadius: 4,
                 fontSize: 11,
-                color: '#888'
+                color: '#000'
               }}>
                 <Tag color="purple">SARSA (On-policy TD)</Tag>
                 <p style={{ margin: '8px 0 0 0' }}>
@@ -325,7 +326,7 @@ const WindyGrid: React.FC = () => {
 
           {!isRunning && !result && (
             <Card>
-              <div style={{ textAlign: 'center', padding: 60, color: '#888' }}>
+              <div style={{ textAlign: 'center', padding: 60, color: '#fff' }}>
                 <ExperimentOutlined style={{ fontSize: 48, marginBottom: 16 }} />
                 <div>点击"开始SARSA训练"运行实验</div>
               </div>

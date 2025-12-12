@@ -133,7 +133,9 @@ const LoadingFallback: React.FC = () => (
       background: 'linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 100%)'
     }}
   >
-    <Spin size="large" tip="加载3D场景中..." />
+    <Spin size="large" tip="加载3D场景中...">
+      <div style={{ minHeight: 200, minWidth: 200 }} />
+    </Spin>
   </div>
 );
 

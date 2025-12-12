@@ -16,6 +16,7 @@ import {
 import { useExperimentStore } from '../../store';
 import { ConvergenceChart, LearningCurve } from '../Charts';
 import { TeachingMode } from '../Teaching';
+import PlaybackControls from '../PlaybackControls';
 
 const RightPanel: React.FC = () => {
   const {
@@ -105,7 +106,7 @@ const RightPanel: React.FC = () => {
         </span>
       ),
       children: (
-        <Card size="small" bodyStyle={{ padding: 8 }}>
+        <Card size="small" styles={{ body: { padding: 8 } }}>
           {qValueData.length > 0 ? (
             <Table
               dataSource={qValueData}
@@ -152,7 +153,7 @@ const RightPanel: React.FC = () => {
           }}
         />
         {result && (
-          <div style={{ marginTop: 8, fontSize: 12, color: '#666' }}>
+          <div style={{ marginTop: 8, fontSize: 12, color: '#000' }}>
             {result.converged ? (
               <Tag color="success" icon={<CheckCircleOutlined />}>
                 {isTDAlgorithm ? '训练完成' : '已收敛'}
@@ -166,6 +167,13 @@ const RightPanel: React.FC = () => {
           </div>
         )}
       </Card>
+
+      {/* 迭代回放控制 - 只在非TD算法时显示 */}
+      {!isTDAlgorithm && (
+        <Card title="迭代动画" size="small" className="stats-card">
+          <PlaybackControls disabled={isRunning} />
+        </Card>
+      )}
 
       {/* 实时统计 */}
       <Card title="实验统计" size="small" className="stats-card">
@@ -257,7 +265,7 @@ const RightPanel: React.FC = () => {
             )}
             <p style={{ marginBottom: 0, wordBreak: 'break-all' }}>
               <strong>实验ID:</strong>{' '}
-              <span style={{ color: '#888' }}>{expId?.slice(0, 8)}...</span>
+              <span style={{ color: '#000' }}>{expId?.slice(0, 8)}...</span>
             </p>
           </div>
         ) : (
@@ -266,7 +274,7 @@ const RightPanel: React.FC = () => {
       </Card>
 
       {/* 收敛曲线和值函数表切换 */}
-      <Card size="small" className="stats-card" bodyStyle={{ padding: '8px 12px' }}>
+      <Card size="small" className="stats-card" styles={{ body: { padding: '8px 12px' } }}>
         <Tabs
           items={tabItems}
           size="small"

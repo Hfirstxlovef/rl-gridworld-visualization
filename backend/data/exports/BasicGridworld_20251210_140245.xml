@@ -1,0 +1,140 @@
+<?xml version="1.0" ?>
+<Experiment xmlns="http://rl-gridworld.edu/schema" version="1.0">
+  <Metadata>
+    <ExperimentID>conv-test</ExperimentID>
+    <ExperimentType>basic</ExperimentType>
+    <Algorithm>value_iteration</Algorithm>
+    <CreatedAt>2025-12-10T14:02:45.743862</CreatedAt>
+  </Metadata>
+  <Configuration>
+    <GridSize>4</GridSize>
+    <DiscountFactor>0.9</DiscountFactor>
+    <ConvergenceThreshold>1e-06</ConvergenceThreshold>
+    <StepReward>-1.0</StepReward>
+  </Configuration>
+  <ExecutionSummary>
+    <Converged>true</Converged>
+    <TotalIterations>5</TotalIterations>
+    <TotalEpisodes>0</TotalEpisodes>
+    <ExecutionTime>0.0200</ExecutionTime>
+  </ExecutionSummary>
+  <IterationHistory/>
+  <FinalResult>
+    <ValueFunction>
+      <State id="0" row="0" col="0">0.000000</State>
+      <State id="1" row="0" col="1">0.000000</State>
+      <State id="2" row="0" col="2">0.000000</State>
+      <State id="3" row="0" col="3">0.000000</State>
+      <State id="4" row="1" col="0">0.000000</State>
+      <State id="5" row="1" col="1">0.000000</State>
+      <State id="6" row="1" col="2">0.000000</State>
+      <State id="7" row="1" col="3">0.000000</State>
+      <State id="8" row="2" col="0">0.000000</State>
+      <State id="9" row="2" col="1">0.000000</State>
+      <State id="10" row="2" col="2">0.000000</State>
+      <State id="11" row="2" col="3">0.000000</State>
+      <State id="12" row="3" col="0">0.000000</State>
+      <State id="13" row="3" col="1">0.000000</State>
+      <State id="14" row="3" col="2">0.000000</State>
+      <State id="15" row="3" col="3">0.000000</State>
+    </ValueFunction>
+    <Policy>
+      <State id="0" row="0" col="0">
+        <Action name="up" probability="0.2500"/>
+        <Action name="down" probability="0.2500"/>
+        <Action name="left" probability="0.2500"/>
+        <Action name="right" probability="0.2500"/>
+      </State>
+      <State id="1" row="0" col="1">
+        <Action name="up" probability="0.2500"/>
+        <Action name="down" probability="0.2500"/>
+        <Action name="left" probability="0.2500"/>
+        <Action name="right" probability="0.2500"/>
+      </State>
+      <State id="2" row="0" col="2">
+        <Action name="up" probability="0.2500"/>
+        <Action name="down" probability="0.2500"/>
+        <Action name="left" probability="0.2500"/>
+        <Action name="right" probability="0.2500"/>
+      </State>
+      <State id="3" row="0" col="3">
+        <Action name="up" probability="0.2500"/>
+        <Action name="down" probability="0.2500"/>
+        <Action name="left" probability="0.2500"/>
+        <Action name="right" probability="0.2500"/>
+      </State>
+      <State id="4" row="1" col="0">
+        <Action name="up" probability="0.2500"/>
+        <Action name="down" probability="0.2500"/>
+        <Action name="left" probability="0.2500"/>
+        <Action name="right" probability="0.2500"/>
+      </State>
+      <State id="5" row="1" col="1">
+        <Action name="up" probability="0.2500"/>
+        <Action name="down" probability="0.2500"/>
+        <Action name="left" probability="0.2500"/>
+        <Action name="right" probability="0.2500"/>
+      </State>
+      <State id="6" row="1" col="2">
+        <Action name="up" probability="0.2500"/>
+        <Action name="down" probability="0.2500"/>
+        <Action name="left" probability="0.2500"/>
+        <Action name="right" probability="0.2500"/>
+      </State>
+      <State id="7" row="1" col="3">
+        <Action name="up" probability="0.2500"/>
+        <Action name="down" probability="0.2500"/>
+        <Action name="left" probability="0.2500"/>
+        <Action name="right" probability="0.2500"/>
+      </State>
+      <State id="8" row="2" col="0">
+        <Action name="up" probability="0.2500"/>
+        <Action name="down" probability="0.2500"/>
+        <Action name="left" probability="0.2500"/>
+        <Action name="right" probability="0.2500"/>
+      </State>
+      <State id="9" row="2" col="1">
+        <Action name="up" probability="0.2500"/>
+        <Action name="down" probability="0.2500"/>
+        <Action name="left" probability="0.2500"/>
+        <Action name="right" probability="0.2500"/>
+      </State>
+      <State id="10" row="2" col="2">
+        <Action name="up" probability="0.2500"/>
+        <Action name="down" probability="0.2500"/>
+        <Action name="left" probability="0.2500"/>
+        <Action name="right" probability="0.2500"/>
+      </State>
+      <State id="11" row="2" col="3">
+        <Action name="up" probability="0.2500"/>
+        <Action name="down" probability="0.2500"/>
+        <Action name="left" probability="0.2500"/>
+        <Action name="right" probability="0.2500"/>
+      </State>
+      <State id="12" row="3" col="0">
+        <Action name="up" probability="0.2500"/>
+        <Action name="down" probability="0.2500"/>
+        <Action name="left" probability="0.2500"/>
+        <Action name="right" probability="0.2500"/>
+      </State>
+      <State id="13" row="3" col="1">
+        <Action name="up" probability="0.2500"/>
+        <Action name="down" probability="0.2500"/>
+        <Action name="left" probability="0.2500"/>
+        <Action name="right" probability="0.2500"/>
+      </State>
+      <State id="14" row="3" col="2">
+        <Action name="up" probability="0.2500"/>
+        <Action name="down" probability="0.2500"/>
+        <Action name="left" probability="0.2500"/>
+        <Action name="right" probability="0.2500"/>
+      </State>
+      <State id="15" row="3" col="3">
+        <Action name="up" probability="0.2500"/>
+        <Action name="down" probability="0.2500"/>
+        <Action name="left" probability="0.2500"/>
+        <Action name="right" probability="0.2500"/>
+      </State>
+    </Policy>
+  </FinalResult>
+</Experiment>

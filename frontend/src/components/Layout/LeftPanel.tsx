@@ -84,12 +84,9 @@ const LeftPanel: React.FC = () => {
 
   // 初始化环境并运行
   const handleStartTraining = async () => {
-    // 如果没有环境，先创建
-    let currentEnvId = envId;
-    if (!currentEnvId) {
-      currentEnvId = await initEnvironment(envConfig);
-      if (!currentEnvId) return;
-    }
+    // 总是重新创建环境（确保使用最新配置）
+    const currentEnvId = await initEnvironment(envConfig);
+    if (!currentEnvId) return;
 
     // 运行算法
     await runAlgorithm(algoConfig);
@@ -134,36 +131,42 @@ const LeftPanel: React.FC = () => {
 
           {envConfig.type === 'basic' && (
             <Form.Item label="网格大小">
-              <InputNumber
-                min={3}
-                max={10}
-                value={envConfig.gridSize}
-                onChange={(value) => handleEnvConfigChange('gridSize', value)}
-                style={{ width: '100%' }}
-                addonAfter="× N"
-              />
+              <Space.Compact style={{ width: '100%' }}>
+                <InputNumber
+                  min={3}
+                  max={10}
+                  value={envConfig.gridSize}
+                  onChange={(value) => handleEnvConfigChange('gridSize', value)}
+                  style={{ width: '70%' }}
+                />
+                <Button disabled style={{ width: '30%', cursor: 'default' }}>× N</Button>
+              </Space.Compact>
             </Form.Item>
           )}
 
           {envConfig.type === 'windy' && (
             <Form.Item label="网格大小">
-              <InputNumber
-                value={10}
-                disabled
-                style={{ width: '100%' }}
-                addonAfter="× 7 (固定)"
-              />
+              <Space.Compact style={{ width: '100%' }}>
+                <InputNumber
+                  value={10}
+                  disabled
+                  style={{ width: '50%' }}
+                />
+                <Button disabled style={{ width: '50%', cursor: 'default' }}>× 7 (固定)</Button>
+              </Space.Compact>
             </Form.Item>
           )}
 
           {envConfig.type === 'cliff' && (
             <Form.Item label="网格大小">
-              <InputNumber
-                value={12}
-                disabled
-                style={{ width: '100%' }}
-                addonAfter="× 4 (固定)"
-              />
+              <Space.Compact style={{ width: '100%' }}>
+                <InputNumber
+                  value={12}
+                  disabled
+                  style={{ width: '50%' }}
+                />
+                <Button disabled style={{ width: '50%', cursor: 'default' }}>× 4 (固定)</Button>
+              </Space.Compact>
             </Form.Item>
           )}
 
